@@ -1,0 +1,114 @@
+"""
+Markdown post-processing for pymupdf4llm output.
+
+Fixes:
+  1. BR-stacked tables (cells with embedded line-break tags) -> proper multi-row tables
+  2. Title extraction (real title vs journal banner)
+  3. Page header/footer deduplication (repeating text on each page)
+  4. Soft-hyphen cleanup
+  5. Collapse excess blank lines
+  6. Author-line footnote-marker cleanup
+"""
+import re
+from collections import Counter
+
+
+SOFT_HYPHEN = "\u00ad"
+
+
+def clean_soft_hyphens(text):
+    return (text or "").replace(SOFT_HYPHEN, "")
+
+
+def collapse_blank_lines(text):
+    return re.sub(r"\n{3,}", "\n\n", text)
+
+
+# ---------------------------------------------------------------------------
+# 1. BR-stacked table reshaping
+# ---------------------------------------------------------------------------
+
+BR_RE = re.compile(r"\s*BRTAG\s*")
+
+
+def _split_br(cell):
+    return [p.strip() for p in BR_RE.split(cell.strip())]
+
+
+def _parse_md_row(line):
+    s = line.strip()
+    if not s.startswith("|"):
+        return None
+    if s.endswith("|"):
+        s = s[1:-1]
+    else:
+        s = s[1:]
+    cells = s.split("|")
+    return [c.strip() for c in cells]
+
+
+def _format_md_row(cells):
+    safe = [(c or "").replace("|", "\\|").replace("\n", " ") for c in cells]
+    return "| " + " | ".join(safe) + " |"
+
+
+def _is_separator_row(cells):
+    return any(cells) and all(
+        re.fullmatch(r"-{2,}|:?-+:?", c.strip()) for c in cells if c.strip()
+    )
+
+
+def reshape_br_table_block(lines):
+    if len(lines) < 2:
+        return lines
+
+    rows = []
+    sep_idx = None
+    for i, line in enumerate(lines):
+        cells = _parse_md_row(line)
+        if cells is None:
+            return lines
+        rows.append(cells)
+        if _is_separator_row(cells) and sep_idx is None:
+            sep_idx = i
+
+    if sep_idx is None:
+        sep_idx = 0
+
+    n_cols = max(len(r) for r in rows)
+    rows = [r + [""] * (n_cols - len(r)) for r in rows]
+
+    header_rows = rows[:sep_idx]
+    body_rows = rows[sep_idx + 1:] if sep_idx + 1 <= len(rows) else []
+
+    def expand_row(row):
+        split_cells = [_split_br(c) for c in row]
+        max_n = max((len(s) for s in split_cells), default=1)
+        split_cells = [s + [""] * (max_n - len(s)) for s in split_cells]
+        return [list(t) for t in zip(*split_cells)]
+
+    new_headers = []
+    for r in header_rows:
+        new_headers.extend(expand_row(r))
+    new_body = []
+    for r in body_rows:
+        new_body.extend(expand_row(r))
+
+    if not new_headers:
+        new_headers = [[""] * n_cols]
+
+    out = []
+    for hr in new_headers:
+        out.append(_format_md_row(hr))
+    out.append(_format_md_row(["---"] * n_cols))
+    for br in new_body:
+        out.append(_format_md_row(br))
+    return out
+
+
+def find_and_reshape_br_tables(markdown):
+    out_lines = []
+    lines = markdown.split("\n")
+    i = 0
+    while i < len(lines):
+        line

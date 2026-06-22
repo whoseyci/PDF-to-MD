@@ -1,0 +1,100 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# Sandbox / build / cache dirs (snapshot-excluded too)
+.cache/
+.tmp/
+.config/
+.venv/
+.swapfile
+.sudo_as_admin_successful
+.env_cache
+
+# Big model weights and binaries -- never check these in
+*.gguf
+*.bin
+*.safetensors
+*.pt
+*.pth
+llama.cpp/
+llama_src/
+
+# PDFs (test inputs) -- keep separately, they're not part of the code
+pdfs/
+*.pdf
+
+# Per-paper converted outputs -- keep the master notes, drop the
+# per-paper bulk and demo outputs (they're regenerated from the PDFs)
+output/baden-bohm-2023/
+output/cuadros-casanova-et-al-2022/
+output/carceles-rodriguez-et-al-2022/
+output/cast-model-paper-2026/
+output/cerda-et-al-2022/
+output/chapela-oliva-et-al-2024-viticulture-cap-critical-analysis/
+output/duran-zuazo-et-al-2020-benefits-organic-olive-rainfed-system/
+output/efthimiou-2024/
+output/fangliang-et-al-2024/
+output/frontiers-in-soil-science-2026/
+output/garcia-ruiz-castillo-llanque-et-al-2020/
+output/garcia-ruiz-castillo-llanque-et-al-2023/
+output/garrido-et-al-2026/
+output/gomez-2025/
+output/gonzalez-rosado-et-al-2021/
+output/homet-et-al-2024/
+output/jimenez-et-al-2023-farming-system-soil-management-floristic/
+output/leal-filho-et-al-2026/
+output/lopez-bernal-et-al-2023/
+output/lopez-vicente-calvo-seas-alvarez-cerda-2020/
+output/marja-et-al-2022/
+output/mesas-et-al-2022/
+output/oecd-2023/
+output/pareja-sanchez-et-al-2024/
+output/penuela-et-al-2025/
+output/pereira-de-souza-et-al-2023/
+output/repullo-ruiberriz-de-torres-et-al-2021/
+output/rodriguez-lizana-et-al-2020/
+output/rodriguez-ruiz-gomez-munoz-2025/
+output/s11104-012-1395-0/
+output/s11356-016-8339-9/
+output/sanchez-moreno-et-al-2015-tillage-herbicide-decrease-soil-bi/
+output/soil-use-and-management-2024-fernandezsoler-cover-crops-impr/
+output/torrus-castillo-et-al-2022/
+output/tziolas-et-al-2025/
+output/_chart_extract_demo_*
+output/_chart_demo/
+output/_index.json
+output/_batch_report.json
+
+# Keep the Gemma demos (small) as documented evidence:
+#   output/_gemma_demo/    -- TPB mermaid extraction
+#   output/_gemma4_demo/   -- side-by-side vs SmolVLM
+# And keep the master notes:
+#   output/OPTIMIZATION_NOTES.md
+#   output/README.md
+
+# Legacy directories from earlier iterations -- not needed
+pipeline/
+output_v2/
+repo/
+tmp/
+uploads/
+build_pp.py
+test_pp.py
+setup_chart_extract.py
+baden_page*.png
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
