@@ -1,0 +1,91 @@
+{
+  "01_simple_bars": {
+    "categories": [
+      "Alpha",
+      "Beta",
+      "Gamma",
+      "Delta",
+      "Epsilon"
+    ],
+    "values": [
+      12,
+      34,
+      18,
+      27,
+      9
+    ],
+    "value_label": "Yield (kg)",
+    "category_label": "Treatment",
+    "kind": "bar_chart"
+  },
+  "02_horizontal_bars": {
+    "categories": [
+      "Soybean",
+      "Maize",
+      "Wheat",
+      "Rice"
+    ],
+    "values": [
+      42,
+      55,
+      28,
+      71
+    ],
+    "value_label": "Hectares",
+    "category_label": "Crop",
+    "kind": "bar_chart"
+  },
+  "03_stacked_bars": {
+    "categories": [
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022"
+    ],
+    "series": [
+      "Forest",
+      "Cropland",
+      "Urban"
+    ],
+    "matrix": [
+      [
+        50,
+        40,
+        10
+      ],
+      [
+        48,
+        41,
+        11
+      ],
+      [
+        45,
+        42,
+        13
+      ],
+      [
+        42,
+        43,
+        15
+      ],
+      [
+        40,
+        44,
+        16
+      ]
+    ],
+    "value_label": "Area (%)",
+    "category_label": "Year",
+    "kind": "stacked_bar_chart"
+  },
+  "04_line_plot": {
+    "series": [
+      "Linear",
+      "Quadratic"
+    ],
+    "kind": "line_plot",
+    "linear_at_x10": 7.0,
+    "quadratic_at_x10": 11.0
+  }
+}

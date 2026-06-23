@@ -72,9 +72,19 @@ class DeplotExtractor(ChartExtractor):
                                     Pix2StructForConditionalGeneration)
         import torch
         self._processor = Pix2StructProcessor.from_pretrained(self.repo_id)
-        torch_dtype = getattr(torch, self.dtype, torch.float32)
+        # NOTE: `low_cpu_mem_usage=True` is critical on RAM-constrained
+        # hosts. Without it, the standard `from_pretrained` allocates a
+        # second full copy of the weights during load (so ~2.2 GB resident
+        # before the first inference even runs, which OOM-kills on the
+        # 2 GB sandbox). With it, peak RSS during generation stays
+        # around 1.4 GB.
+        kwargs = {"low_cpu_mem_usage": True}
+        # Transformers >= 5 renamed `torch_dtype` to `dtype`; pass
+        # whichever is current to avoid the deprecation warning.
+        if hasattr(torch, self.dtype):
+            kwargs["dtype"] = getattr(torch, self.dtype)
         self._model = Pix2StructForConditionalGeneration.from_pretrained(
-            self.repo_id, torch_dtype=torch_dtype)
+            self.repo_id, **kwargs)
         if self.device:
             self._model = self._model.to(self.device)
         self._model.eval()

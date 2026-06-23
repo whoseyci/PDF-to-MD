@@ -1,0 +1,308 @@
+{
+  "01_simple_bars": {
+    "truth": {
+      "categories": [
+        "Alpha",
+        "Beta",
+        "Gamma",
+        "Delta",
+        "Epsilon"
+      ],
+      "values": [
+        12,
+        34,
+        18,
+        27,
+        9
+      ],
+      "value_label": "Yield (kg)",
+      "category_label": "Treatment",
+      "kind": "bar_chart"
+    },
+    "simple": {
+      "status": "ok",
+      "cats": [
+        "Alpha",
+        "Beta",
+        "Gamma",
+        "Delta",
+        "Epsilon"
+      ],
+      "vals": [
+        12.026,
+        34.039,
+        18.063,
+        27.045,
+        9.081
+      ],
+      "value_label": null,
+      "elapsed_seconds": 0.5
+    },
+    "deplot": {
+      "status": "ok",
+      "cats": [
+        "Alpha",
+        "Beta",
+        "Gamma",
+        "Delta",
+        "Ip 3"
+      ],
+      "vals": [
+        12.0,
+        34.0,
+        18.0,
+        27.0,
+        9.0
+      ],
+      "series": [],
+      "matrix": [],
+      "value_label": null,
+      "category_label": "Treatment",
+      "elapsed_seconds": 45.4,
+      "raw": "TITLE |  <0x0A> Treatment | Week (lag) <0x0A> Alpha | 12 <0x0A> Beta | 34 <0x0A> Gamma | 18 <0x0A> Delta | 27 <0x0A> Ip 3 | 9"
+    }
+  },
+  "02_horizontal_bars": {
+    "truth": {
+      "categories": [
+        "Soybean",
+        "Maize",
+        "Wheat",
+        "Rice"
+      ],
+      "values": [
+        42,
+        55,
+        28,
+        71
+      ],
+      "value_label": "Hectares",
+      "category_label": "Crop",
+      "kind": "bar_chart"
+    },
+    "simple": {
+      "status": "ok",
+      "cats": [
+        "Soybean",
+        "Maize",
+        "Wheat",
+        "Rice"
+      ],
+      "vals": [
+        41.978,
+        55.062,
+        28.036,
+        69.969
+      ],
+      "value_label": "Hectares",
+      "elapsed_seconds": 0.4
+    },
+    "deplot": {
+      "status": "ok",
+      "cats": [
+        "Rice",
+        "Wheat",
+        "Maize",
+        "Soybean"
+      ],
+      "vals": [
+        71.0,
+        28.0,
+        55.0,
+        42.0
+      ],
+      "series": [],
+      "matrix": [],
+      "value_label": "Crop area",
+      "category_label": "Crop",
+      "elapsed_seconds": 40.7,
+      "raw": "TITLE | Crop area <0x0A> Crop | Hectares <0x0A> Rice | 71 <0x0A> Wheat | 28 <0x0A> Maize | 55 <0x0A> Soybean | 42"
+    }
+  },
+  "03_stacked_bars": {
+    "truth": {
+      "categories": [
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2022"
+      ],
+      "series": [
+        "Forest",
+        "Cropland",
+        "Urban"
+      ],
+      "matrix": [
+        [
+          50,
+          40,
+          10
+        ],
+        [
+          48,
+          41,
+          11
+        ],
+        [
+          45,
+          42,
+          13
+        ],
+        [
+          42,
+          43,
+          15
+        ],
+        [
+          40,
+          44,
+          16
+        ]
+      ],
+      "value_label": "Area (%)",
+      "category_label": "Year",
+      "kind": "stacked_bar_chart"
+    },
+    "simple": {
+      "status": "partial",
+      "cats": [
+        "Category 1",
+        "Category 2",
+        "Year",
+        "Category 4",
+        "Category 5"
+      ],
+      "vals": [
+        100.087,
+        100.087,
+        100.087,
+        100.087,
+        100.087
+      ],
+      "value_label": null,
+      "elapsed_seconds": 0.5
+    },
+    "deplot": {
+      "status": "ok",
+      "cats": [
+        "2018",
+        "2019",
+        "2000",
+        "2001",
+        "2002"
+      ],
+      "vals": [],
+      "series": [
+        "Forest",
+        "Cropland",
+        "Urban"
+      ],
+      "matrix": [
+        [
+          50.1,
+          35.8,
+          10.4
+        ],
+        [
+          48.4,
+          38.1,
+          10.3
+        ],
+        [
+          45.6,
+          38.5,
+          12.1
+        ],
+        [
+          42.4,
+          39.1,
+          12.8
+        ],
+        [
+          40.6,
+          39.0,
+          15.1
+        ]
+      ],
+      "value_label": "Land use",
+      "category_label": "Year",
+      "elapsed_seconds": 111.8,
+      "raw": "TITLE | Land use <0x0A> Year | Forest | Cropland | Urban <0x0A> 2018 | 50.1 | 35.8 | 10.4 <0x0A> 2019 | 48.4 | 38.1 | 10.3 <0x0A> 2000 | 45.6 | 38.5 | 12.1 <0x0A> 2001 | 42.4 | 39.1 | 12.8 <0x0A> 2002 | 40.6 | 39.0 | 15.1"
+    }
+  },
+  "04_line_plot": {
+    "truth": {
+      "series": [
+        "Linear",
+        "Quadratic"
+      ],
+      "kind": "line_plot",
+      "linear_at_x10": 7.0,
+      "quadratic_at_x10": 11.0
+    },
+    "simple": {
+      "status": "no_bars",
+      "cats": [],
+      "vals": [],
+      "value_label": null,
+      "elapsed_seconds": 0.4
+    },
+    "deplot": {
+      "status": "ok",
+      "cats": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "vals": [],
+      "series": [
+        "Linear",
+        "Quadratic"
+      ],
+      "matrix": [
+        [
+          2.0,
+          1.0
+        ],
+        [
+          3.0,
+          1.5
+        ],
+        [
+          4.0,
+          2.6
+        ],
+        [
+          5.0,
+          4.6
+        ],
+        [
+          4.0,
+          2.6
+        ],
+        [
+          5.0,
+          4.8
+        ],
+        [
+          6.0,
+          7.3
+        ],
+        [
+          7.0,
+          11.0
+        ]
+      ],
+      "value_label": "Trend over time",
+      "category_label": "x",
+      "elapsed_seconds": 84.3,
+      "raw": "TITLE | Trend over time<0x0A>x | Linear | Quadratic <0x0A> 0 | 2 | 1 <0x0A> 1 | 3 | 1.5 <0x0A> 2 | 4 | 2.6 <0x0A> 3 | 5 | 4.6 <0x0A> 4 | 4 | 2.6 <0x0A> 5 | 5 | 4.8 <0x0A> 6 | 6 | 7.3 <0x0A> 7 | 7 | 11"
+    }
+  }
+}

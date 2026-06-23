@@ -81,15 +81,23 @@ several state-of-the-art PDF→MD projects:
   * `--verify-refs` cross-checks against Crossref + OpenAlex
     (`ref_verifier.py`, inspired by markrussinovich/refchecker) to
     flag fabricated or garbled citations
-* **Figures** -- three complementary tracks:
+* **Figures** -- four complementary tracks:
   * `chart_extract/` -- classical (OpenCV + tesseract) geometric
     extraction. Real markdown tables with real numbers, no hallucination.
+    Bench: 0.5 s/chart, mean abs err ≤ 0.1 on simple bar charts.
   * `chart_extract/deplot.py` -- Google's `google/deplot` specialist
-    model as a fallback for chart kinds our geometric pipeline doesn't
-    cover. Use `CascadingExtractor([SimpleBars(), DeplotExtractor()])`
+    model as fallback for chart kinds we don't cover geometrically
+    (stacked / line / scatter / pie). 40-110 s/figure on CPU, peak
+    1.45 GB RAM. Use `CascadingExtractor([SimpleBars(), DeplotExtractor()])`
     to chain them.
-  * `mermaid_extract.py` -- diagram → Mermaid block via Gemma 4 E2B,
-    for conceptual diagrams (TPB, causal loops, decision trees)
+  * `diagram_extract.py` -- **classical (non-LLM)** diagram → Mermaid
+    extractor for clean machine-rendered conceptual diagrams (TPB,
+    causal loops, decision trees, draw.io exports). 0.8 s/figure,
+    extracted 5/5 nodes + 4/4 edges on a TPB model. Tries this
+    FIRST in the runner before falling back to the VLM.
+  * `mermaid_extract.py` -- VLM-based diagram → Mermaid via Gemma 4 E2B.
+    Fallback for hand-drawn / irregular / overlapping diagrams that
+    the classical extractor can't handle. ~16 min/figure on CPU.
   * `figure_prompts.py` -- marker-style per-subtype VLM prompts for
     algorithms, code listings, equations, screenshots, gels/blots
 * **Output schema**:
@@ -168,7 +176,8 @@ pipeline_v2/
     ├── validators.py        # output post-processing
     ├── runner.py            # process_figure() — orchestrates everything
     ├── run_all.py           # CLI: batch over a paper
-    ├── mermaid_extract.py   # diagram → ```mermaid block (Gemma 4)
+    ├── diagram_extract.py   # NEW: classical (non-LLM) diagram → mermaid
+    ├── mermaid_extract.py   # VLM-based diagram → mermaid (Gemma 4)
     ├── MERMAID_DEMO.md      # walked-through example
     ├── README.md
     ├── backends/

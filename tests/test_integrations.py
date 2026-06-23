@@ -152,6 +152,68 @@ def test_deplot_extractor_lazy(t):
         print("  (transformers not installed; deplot test skipped)")
 
 
+def test_diagram_extract(t):
+    """Classical (non-LLM) diagram → mermaid extractor.
+
+    Generates a synthetic 5-node 4-edge diagram with matplotlib,
+    runs the extractor, asserts node count + node labels + edge count.
+    """
+    import tempfile
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import FancyBboxPatch
+    except ImportError:
+        print("  (matplotlib not installed; diagram test skipped)")
+        return
+
+    from pipeline_v2.vision.diagram_extract import extract_diagram
+    with tempfile.TemporaryDirectory() as td:
+        img = Path(td) / "diagram.png"
+        fig, ax = plt.subplots(figsize=(10, 5), dpi=120)
+        ax.set_xlim(0, 10); ax.set_ylim(0, 5); ax.axis('off')
+
+        def box(x, y, w, h, text, color="#dbe9f4"):
+            ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.1",
+                                            linewidth=2, edgecolor="black",
+                                            facecolor=color))
+            ax.text(x+w/2, y+h/2, text, ha="center", va="center",
+                    fontsize=12, fontweight="bold")
+
+        def arrow(x1, y1, x2, y2):
+            ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                         arrowprops=dict(arrowstyle="->", lw=2, color="black"))
+
+        box(0.2, 4.0, 2.8, 0.8, "Attitude")
+        box(0.2, 2.6, 2.8, 0.8, "SubNorm")
+        box(0.2, 1.2, 2.8, 0.8, "PBC")
+        box(4.0, 2.6, 2.2, 0.8, "Intention", color="#f9e1c8")
+        box(7.2, 2.6, 2.5, 0.8, "Behaviour", color="#d8f0d3")
+        arrow(3.0, 4.4, 4.0, 3.0)
+        arrow(3.0, 3.0, 4.0, 3.0)
+        arrow(3.0, 1.6, 4.0, 3.0)
+        arrow(6.2, 3.0, 7.2, 3.0)
+        fig.tight_layout(); fig.savefig(img); plt.close(fig)
+
+        r = extract_diagram(img)
+        t.check(r.status == "ok",
+                f"diagram extractor returns ok (got {r.status}: {r.reason})")
+        t.check(len(r.nodes) == 5,
+                f"detects 5 nodes (got {len(r.nodes)})")
+        labels = sorted(n.label.lower() for n in r.nodes)
+        # At least the 5 distinct words should appear in the extracted labels
+        for keyword in ("attitude", "subnorm", "pbc", "intention", "behaviour"):
+            t.check(any(keyword in lab for lab in labels),
+                    f"detects label containing {keyword!r} (got {labels})")
+        t.check(len(r.edges) >= 3,
+                f"detects >= 3 edges (got {len(r.edges)})")
+        t.check(r.mermaid and "flowchart" in r.mermaid,
+                f"emits valid mermaid block")
+        print(f"  diagram: {len(r.nodes)} nodes, {len(r.edges)} edges, "
+              f"conf={r.confidence}")
+
+
 def test_cascading_extractor(t):
     """Cascade should short-circuit on a high-confidence hit."""
     from pipeline_v2.vision.chart_extract.multi_extractor import CascadingExtractor
@@ -202,6 +264,7 @@ def main():
     print("=== figure_prompts ==="); test_figure_prompts(t)
     print("=== llm_boost ==="); test_llm_boost(t)
     print("=== deplot extractor ==="); test_deplot_extractor_lazy(t)
+    print("=== diagram extract ==="); test_diagram_extract(t)
     print("=== cascading extractor ==="); test_cascading_extractor(t)
     return t.report()
 

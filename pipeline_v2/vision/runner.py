@@ -161,6 +161,45 @@ def process_figure(
     # in place of an opaque image.
     if kind in (FigureKind.FLOW_DIAGRAM, FigureKind.SCHEMATIC) \
             and img_path.exists():
+        # 1b.i) Try CLASSICAL (OpenCV + tesseract) extraction first.
+        # ~1s vs 16min for the VLM; falls back gracefully if it can't
+        # find enough nodes/edges to be useful.
+        try:
+            from .diagram_extract import extract_diagram
+            cls = extract_diagram(img_path)
+            if cls.status == "ok" and len(cls.nodes) >= 2 \
+                    and len(cls.edges) >= 1:
+                result.mermaid = cls.mermaid
+                result.extracted_data = {
+                    **(result.extracted_data or {}),
+                    "mermaid_source": "classical",
+                    "mermaid_nodes": [f"{n.id}[{n.label}]" for n in cls.nodes],
+                    "mermaid_edges": [
+                        f"{e.src}{'-->' if e.directed else '---'}{e.dst}"
+                        for e in cls.edges],
+                    "mermaid_confidence": cls.confidence,
+                    "mermaid_reason": cls.reason,
+                    "mermaid_elapsed_seconds": cls.elapsed_seconds,
+                }
+                n = len(cls.nodes)
+                result.alt_text = (
+                    f"Conceptual diagram with {n} labeled node"
+                    f"{'s' if n != 1 else ''}, rendered below as Mermaid.")
+                if log_prefix:
+                    print(f"{log_prefix}diagram-classical {fig_id}: "
+                            f"{len(cls.nodes)} nodes, {len(cls.edges)} edges, "
+                            f"{cls.elapsed_seconds:.2f}s")
+                _save(sidecar, result)
+                return result
+            elif log_prefix:
+                print(f"{log_prefix}diagram-classical {fig_id}: "
+                        f"{cls.status} ({cls.reason}); trying VLM")
+        except Exception as e:
+            if log_prefix:
+                print(f"{log_prefix}diagram-classical {fig_id}: "
+                        f"EXC {type(e).__name__}: {e}")
+
+        # 1b.ii) Fallback: VLM-based mermaid extraction (slow).
         try:
             from .mermaid_extract import MermaidExtractor
             mext = MermaidExtractor(model)
@@ -169,18 +208,17 @@ def process_figure(
                 result.mermaid = mres.mermaid
                 result.extracted_data = {
                     **(result.extracted_data or {}),
+                    "mermaid_source": "vlm",
                     "mermaid_nodes": mres.nodes,
                     "mermaid_edges": mres.edges,
                     "mermaid_confidence": mres.confidence,
                     "mermaid_reason": mres.reason,
                     "mermaid_elapsed_seconds": mres.elapsed_seconds,
                 }
-                # Build a generic alt-text from node count
                 n = len(mres.nodes)
                 result.alt_text = (
                     f"Conceptual diagram with {n} labeled node"
-                    f"{'s' if n != 1 else ''}, rendered below as Mermaid."
-                )
+                    f"{'s' if n != 1 else ''}, rendered below as Mermaid.")
                 if log_prefix:
                     print(f"{log_prefix}mermaid-extract {fig_id}: "
                             f"{len(mres.nodes)} nodes, {len(mres.edges)} edges, "
