@@ -435,6 +435,61 @@ def test_pix2tex_lazy(t):
             f"status sane: {r.status}")
 
 
+def test_eval_metrics(t):
+    """Eval harness -- normalisation, tokenisation, metric sanity."""
+    from eval_harness.run_eval import (normalise, tokenize, char_ratio,
+                                          jaccard_words, fast_wer_estimate,
+                                          precision_recall_words)
+    a = "Hello World! 123."
+    b = "hello world 123"
+    t.check(normalise(a) == "hello world! 123.", f"normalise: {normalise(a)!r}")
+    t.check(tokenize(a) == ["hello", "world", "123"], "tokenize")
+    t.check(char_ratio("abcde", "abcdefghij") == 0.5, "char ratio")
+    t.check(jaccard_words("a b c", "b c d") == 0.5, "jaccard 0.5")
+    # WER: perfect match
+    t.check(fast_wer_estimate("a b c", "a b c") == 0.0, "WER perfect")
+    # WER: empty extraction
+    t.check(fast_wer_estimate("", "a b c") == 1.0, "WER empty")
+    pr = precision_recall_words("a b c d", "a b e f")
+    t.check(0 < pr["f1"] < 1, f"f1 in range: {pr}")
+
+
+def test_corpus_browser(t):
+    """Corpus browser -- minimal MD → HTML, paper bundle collector."""
+    from pipeline_v2.corpus_browser import (md_to_html, collect_paper,
+                                              build_corpus_browser)
+    html = md_to_html("# Title\n\nParagraph with **bold** word.\n\n---\n\nNext.")
+    t.check("<h1>Title</h1>" in html, "h1 rendered")
+    t.check("<strong>bold</strong>" in html, "bold rendered")
+    t.check("<hr/>" in html, "hr rendered")
+    # Collector on a real output dir
+    out_dir = Path("output")
+    if (out_dir / "baden-bohm-2023" / "paper.md").exists():
+        b = collect_paper(out_dir / "baden-bohm-2023")
+        t.check(b is not None and b.slug == "baden-bohm-2023",
+                "collect_paper got bundle")
+        t.check(len(b.md_html) > 100, "md_html non-trivial")
+        t.check(len(b.references) >= 0, "refs list returned")
+
+
+def test_failure_modes_generators(t):
+    """Failure mode catalog -- generators all produce a file."""
+    import tempfile
+    from eval_harness.failure_modes import GENERATORS
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        n_ok = 0
+        for name, fn in GENERATORS:
+            out = td / f"{name}.pdf"
+            try:
+                fn(out)
+                if out.exists() and out.stat().st_size > 8:
+                    n_ok += 1
+            except Exception:
+                pass
+        t.check(n_ok >= 9, f"at least 9/10 generators produced a file: {n_ok}/10")
+
+
 def test_gemma_ocr_lazy(t):
     """E2 (refactored) -- Gemma-4 OCR fallback is importable and
     degrades gracefully when the backend isn't installed."""
@@ -513,6 +568,9 @@ def main():
     print("=== caption pairing (E3) ==="); test_caption_pairing_e3(t)
     print("=== pix2tex (E5) lazy ==="); test_pix2tex_lazy(t)
     print("=== gemma-ocr (E2 refactored) lazy ==="); test_gemma_ocr_lazy(t)
+    print("=== eval-harness metrics ==="); test_eval_metrics(t)
+    print("=== corpus browser ==="); test_corpus_browser(t)
+    print("=== failure-mode generators ==="); test_failure_modes_generators(t)
     return t.report()
 
 

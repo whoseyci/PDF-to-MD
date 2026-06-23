@@ -112,6 +112,50 @@ several state-of-the-art PDF→MD projects:
   based on classical-extractor confidence so LLM budget only burns
   on blocks that need it.
 
+## Eval harness (`eval_harness/`)
+
+Three honest evaluations of how this pipeline actually performs:
+
+1. **Ground-truth corpus + WER bench** — downloads 10 arXiv papers
+   (Attention, BERT, ViT, ResNet, GAN, VAE, …), grabs their LaTeX
+   source as ground truth, runs five extractors (pdftotext,
+   pdftotext-stream, pymupdf4llm, our pipeline post-process, our
+   E1 reading-order) and reports F1 / WER\* / runtime side-by-side.
+   See `eval_harness/REPORT.md`.
+2. **Static corpus browser** — `pipeline_v2/corpus_browser.py` emits
+   a single self-contained `output/index.html` that lets you browse
+   every processed paper with rendered markdown, figures gallery,
+   reference table with DOI badges.
+3. **Failure-mode catalog** — `eval_harness/failure_modes.py`
+   synthesises 10 deliberately broken PDFs (encrypted, image-only,
+   rotated, mid-word-break, garbage bytes, …) and probes which
+   pipeline stage tolerated each. See `eval_harness/FAILURE_REPORT.md`.
+
+```bash
+python3 -m eval_harness.fetch_arxiv       # one-time download
+python3 -m eval_harness.run_eval          # → REPORT.md / REPORT.json
+python3 -m eval_harness.failure_modes     # → FAILURE_REPORT.md
+python3 -m pipeline_v2.corpus_browser     # → output/index.html
+```
+
+**Numbers (June 2026, 10 arXiv papers, F1 vs LaTeX-rendered text):**
+
+| Extractor | avg F1 | avg WER\* | avg s |
+|-----------|--------|-----------|-------|
+| pdftotext            | 0.777 | 0.024 | 0.11 |
+| pdftotext-stream     | 0.802 | 0.020 | 0.10 |
+| pymupdf4llm          | **0.803** | **0.019** | 15.4 |
+| pdf2md-postprocess   | **0.803** | **0.019** | 15.4 |
+| pdf2md-reorder-e1    | 0.766 | 0.033 | 0.12 |
+
+Two honest findings worth highlighting:
+* Our `pdf2md-postprocess` adds zero word-set F1 over raw `pymupdf4llm`
+  — postprocessing rearranges, it doesn't change the word inventory.
+* Our E1 reading-order pass is **actively worse** (F1 -0.04 vs
+  pdftotext-stream) on born-digital arXiv papers, suggesting the
+  column-reassignment is dropping content. The harness exists to
+  catch exactly this kind of regression.
+
 ## Research-track features (E1–E9, all shipped)
 
 All 9 experiments proposed in `RESEARCH_DIRECTIONS.md` are now

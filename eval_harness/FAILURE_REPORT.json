@@ -1,0 +1,342 @@
+{
+  "F01_encrypted": {
+    "pdf_bytes": 1444,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 1,
+        "encrypted": 1,
+        "elapsed_s": 0.028,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": false,
+        "elapsed_s": 0.311,
+        "error": "ValueError: cannot initialize - document still encrypted"
+      },
+      "pdftotext": {
+        "ok": false,
+        "rc": 1,
+        "chars": 0,
+        "stderr": "Command Line Error: Incorrect password",
+        "elapsed_s": 0.028
+      },
+      "pdf2md_reorder": {
+        "ok": false,
+        "elapsed_s": 0.04,
+        "error": "ValueError: document closed or encrypted"
+      },
+      "caption_pairing": {
+        "ok": false,
+        "elapsed_s": 0.021,
+        "error": "ValueError: document closed or encrypted"
+      }
+    }
+  },
+  "F02_empty": {
+    "pdf_bytes": 518,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 1,
+        "encrypted": 0,
+        "elapsed_s": 0.0,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": true,
+        "chars": 0,
+        "elapsed_s": 0.191
+      },
+      "pdftotext": {
+        "ok": true,
+        "rc": 0,
+        "chars": 1,
+        "stderr": "",
+        "elapsed_s": 0.016
+      },
+      "pdf2md_reorder": {
+        "ok": true,
+        "chars": 0,
+        "elapsed_s": 0.001
+      },
+      "caption_pairing": {
+        "ok": true,
+        "n_pairs": 0,
+        "elapsed_s": 0.0
+      }
+    }
+  },
+  "F03_image_only": {
+    "pdf_bytes": 5763568,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 1,
+        "encrypted": 0,
+        "elapsed_s": 0.0,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": true,
+        "chars": 103,
+        "elapsed_s": 1.081
+      },
+      "pdftotext": {
+        "ok": true,
+        "rc": 0,
+        "chars": 1,
+        "stderr": "",
+        "elapsed_s": 0.016
+      },
+      "pdf2md_reorder": {
+        "ok": true,
+        "chars": 0,
+        "elapsed_s": 0.004
+      },
+      "caption_pairing": {
+        "ok": true,
+        "n_pairs": 0,
+        "elapsed_s": 0.003
+      }
+    }
+  },
+  "F04_rotated": {
+    "pdf_bytes": 1528,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 3,
+        "encrypted": 0,
+        "elapsed_s": 0.0,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": true,
+        "chars": 21,
+        "elapsed_s": 0.418
+      },
+      "pdftotext": {
+        "ok": true,
+        "rc": 0,
+        "chars": 66,
+        "stderr": "",
+        "elapsed_s": 0.014
+      },
+      "pdf2md_reorder": {
+        "ok": true,
+        "chars": 61,
+        "elapsed_s": 0.003
+      },
+      "caption_pairing": {
+        "ok": true,
+        "n_pairs": 0,
+        "elapsed_s": 0.001
+      }
+    }
+  },
+  "F05_no_headings": {
+    "pdf_bytes": 3945,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 5,
+        "encrypted": 0,
+        "elapsed_s": 0.0,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": true,
+        "chars": 17975,
+        "elapsed_s": 0.983
+      },
+      "pdftotext": {
+        "ok": true,
+        "rc": 0,
+        "chars": 17610,
+        "stderr": "",
+        "elapsed_s": 0.018
+      },
+      "pdf2md_reorder": {
+        "ok": true,
+        "chars": 17998,
+        "elapsed_s": 0.01
+      },
+      "caption_pairing": {
+        "ok": true,
+        "n_pairs": 0,
+        "elapsed_s": 0.006
+      }
+    }
+  },
+  "F06_midword_break": {
+    "pdf_bytes": 1265,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 2,
+        "encrypted": 0,
+        "elapsed_s": 0.0,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": true,
+        "chars": 92,
+        "elapsed_s": 0.248
+      },
+      "pdftotext": {
+        "ok": true,
+        "rc": 0,
+        "chars": 92,
+        "stderr": "",
+        "elapsed_s": 0.014
+      },
+      "pdf2md_reorder": {
+        "ok": true,
+        "chars": 88,
+        "elapsed_s": 0.002
+      },
+      "caption_pairing": {
+        "ok": true,
+        "n_pairs": 0,
+        "elapsed_s": 0.001
+      }
+    }
+  },
+  "F07_weird_unicode": {
+    "pdf_bytes": 1602,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 1,
+        "encrypted": 0,
+        "elapsed_s": 0.0,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": true,
+        "chars": 47,
+        "elapsed_s": 0.13
+      },
+      "pdftotext": {
+        "ok": true,
+        "rc": 0,
+        "chars": 44,
+        "stderr": "",
+        "elapsed_s": 0.02
+      },
+      "pdf2md_reorder": {
+        "ok": true,
+        "chars": 42,
+        "elapsed_s": 0.002
+      },
+      "caption_pairing": {
+        "ok": true,
+        "n_pairs": 0,
+        "elapsed_s": 0.001
+      }
+    }
+  },
+  "F08_duplicate_pages": {
+    "pdf_bytes": 3176,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 4,
+        "encrypted": 0,
+        "elapsed_s": 0.0,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": true,
+        "chars": 252,
+        "elapsed_s": 0.473
+      },
+      "pdftotext": {
+        "ok": true,
+        "rc": 0,
+        "chars": 228,
+        "stderr": "",
+        "elapsed_s": 0.015
+      },
+      "pdf2md_reorder": {
+        "ok": true,
+        "chars": 226,
+        "elapsed_s": 0.005
+      },
+      "caption_pairing": {
+        "ok": true,
+        "n_pairs": 0,
+        "elapsed_s": 0.001
+      }
+    }
+  },
+  "F09_garbage_bytes": {
+    "pdf_bytes": 4015,
+    "stages": {
+      "pymupdf_open": {
+        "ok": false,
+        "n_pages": null,
+        "encrypted": null,
+        "elapsed_s": 0.0,
+        "error": "FileDataError: Failed to open file '/home/user/eval_harness/failure_pdfs/F09_garbage_bytes.pdf'."
+      },
+      "pymupdf4llm": {
+        "ok": false,
+        "elapsed_s": 0.0,
+        "error": "FileDataError: Failed to open file '/home/user/eval_harness/failure_pdfs/F09_garbage_bytes.pdf'."
+      },
+      "pdftotext": {
+        "ok": false,
+        "rc": 1,
+        "chars": 0,
+        "stderr": "Syntax Error (203): Illegal character '{'\nSyntax Error: Couldn't find trailer dictionary\nSyntax Error: Couldn't find tra",
+        "elapsed_s": 0.014
+      },
+      "pdf2md_reorder": {
+        "ok": false,
+        "elapsed_s": 0.0,
+        "error": "FileDataError: Failed to open file '/home/user/eval_harness/failure_pdfs/F09_garbage_bytes.pdf'."
+      },
+      "caption_pairing": {
+        "ok": false,
+        "elapsed_s": 0.0,
+        "error": "FileDataError: Failed to open file '/home/user/eval_harness/failure_pdfs/F09_garbage_bytes.pdf'."
+      }
+    }
+  },
+  "F10_table_only": {
+    "pdf_bytes": 1804,
+    "stages": {
+      "pymupdf_open": {
+        "ok": true,
+        "n_pages": 1,
+        "encrypted": 0,
+        "elapsed_s": 0.0,
+        "error": null
+      },
+      "pymupdf4llm": {
+        "ok": true,
+        "chars": 41,
+        "elapsed_s": 0.137
+      },
+      "pdftotext": {
+        "ok": true,
+        "rc": 0,
+        "chars": 28,
+        "stderr": "",
+        "elapsed_s": 0.014
+      },
+      "pdf2md_reorder": {
+        "ok": true,
+        "chars": 19,
+        "elapsed_s": 0.002
+      },
+      "caption_pairing": {
+        "ok": true,
+        "n_pairs": 0,
+        "elapsed_s": 0.001
+      }
+    }
+  }
+}

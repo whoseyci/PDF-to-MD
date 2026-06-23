@@ -98,3 +98,10 @@ baden_page*.png
 *.swp
 *.swo
 *~
+
+# Eval harness -- ignore downloaded arXiv source dirs (huge),
+# tracked code only
+eval_harness/corpus/
+
+# Big single-file corpus browser (regen with corpus_browser.py)
+output/index.html
