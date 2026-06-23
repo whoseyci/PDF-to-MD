@@ -56,7 +56,15 @@ hyphenation and ligatures but does NOT re-flow columns.
 
 ---
 
-## R2: DeepSeek-OCR as a unified-quality-floor extractor
+## R2: Low-confidence-page re-OCR with the existing VLM
+
+> **Decision (June 2026):** The original proposal here was to add
+> DeepSeek-OCR as a second model. We **rejected** that to avoid
+> shipping two VLMs in one pipeline (we already run Gemma 4 E2B).
+> The shipped E2 instead reuses the existing Gemma 4 backend for
+> the same role (low-confidence-page re-OCR), trading raw OCR
+> accuracy for a much tighter dependency surface. See
+> `pipeline_v2/gemma_ocr.py`.
 
 ### The problem
 
@@ -65,42 +73,31 @@ scanned papers, papers with embedded raster tables, or papers with
 non-standard fonts. We have no fallback today; if pymupdf4llm
 returns scrambled text, the rest of the pipeline inherits the mess.
 
-### What's new
+### Two designs that were considered
 
-**DeepSeek-OCR** (Nov 2025, MIT license) is currently SOTA on
-open-source OCR + layout. Single model that:
-- extracts text page-by-page as structured Markdown
-- preserves headings / tables / equations natively
-- crops embedded figures with bboxes
-- handles 100+ languages
-- runs at ~1 page/sec on a single RTX 4090 (the published numbers)
-- ~5-10 pages/min on 2 vCPU CPU (estimated from our SmolVLM/Gemma 4
-  experience)
+* **DeepSeek-OCR** (Nov 2025, MIT, ~3B params, SOTA open-source layout-
+  aware OCR) -- best raw quality but pulls a second VLM and ~6GB of
+  weights into the pipeline.
+* **Gemma 4 E2B re-OCR** -- reuses the multimodal model we already
+  ship (it's used for figure description / mermaid diagram extraction).
+  Character-level accuracy is lower than a dedicated OCR model, but
+  zero new dependencies.
 
-### Proposed experiment **E2: DeepSeek-OCR as quality validator**
+### Proposed experiment **E2: Gemma-based low-confidence page re-OCR**
 
-Two designs to compare:
-
-**E2a (additive)**: Run DeepSeek-OCR ONLY on pages where the
-existing pipeline flags low-confidence output (e.g. `coverage<0.85`
-or any page-marker had `n_chars<100`). Compare paragraph-level
-ROUGE-L against pymupdf4llm on the affected pages.
-
-**E2b (full replacement)**: Replace pymupdf4llm entirely with
-DeepSeek-OCR. Compare end-to-end:
-- text fidelity (ROUGE-L vs a held-out latex source for arXiv papers)
-- runtime (likely 10-30x slower than pymupdf4llm)
-- per-page char counts (proxy for "did we lose content?")
-
-**Decision rule:** Adopt E2a if it improves the bottom-confidence
-papers by > 5% ROUGE-L without slowing the rest. Adopt E2b only if
-text fidelity gains exceed 10% AND we can run the corpus in < 30
-minutes total.
-
-* **Inputs:** All 35 corpus papers + 3-5 arXiv papers with known
-  latex source as ground truth.
-* **Cost:** ~1 day engineering for the integration, ~2-4 hours per
-  corpus pass on 2 vCPU.
+* **Setup:** When `provenance.json` reports `chars < 100` for a page
+  (i.e. pymupdf4llm produced essentially nothing), render that page
+  to an image and ask Gemma 4 to transcribe its full text. Splice
+  the result back into `paper.md`.
+* **Inputs:** All 35 corpus papers; only the small subset of low-
+  confidence pages will actually trigger the VLM pass.
+* **Metric:** Per-page char-count delta + manual eyeballing on the
+  worst ~5 pages.
+* **Cost:** ~half day engineering; per re-OCR'd page ~60-80 s on
+  2 vCPU.
+* **Future option:** If quality is insufficient, the E2 module can
+  be ported to DeepSeek-OCR later -- the selector / dispatcher layer
+  stays the same.
 
 ---
 
@@ -339,13 +336,16 @@ Given the cost/value tradeoffs:
 | 6    | **E1** VILA reading-order            | 1        | Biggest impact on text quality on multi-column papers  | ✅ heuristic 1/2/3-col detector + reorder; works on the Fangliang 2-col paper |
 | 7    | **E3** PDFigCapX caption pairing     | 2        | Fixes the side-by-side caption breakage on MDPI etc.   | ✅ negative-space algorithm; **367/405 = 90.6% paired** corpus-wide |
 | 8    | **E5** pix2tex equations             | 0.5      | Niche but high-confidence for STEM papers              | ✅ wrapper shipped; opt-in via `pip install pix2tex` |
-| 9    | **E2** DeepSeek-OCR                  | 1-2      | Possibly game-changing for scanned-PDF cases           | ✅ lazy hook shipped; RAM-aware (needs ≥6GB); opt-out env var |
+| 9    | **E2** Low-confidence page re-OCR    | 0.5      | Rescues garbled / scanned pages without dropping content | ✅ shipped as `pipeline_v2/gemma_ocr.py` (reuses existing Gemma 4 backend instead of adding DeepSeek-OCR — see R2 above for rationale) |
 
 ### What's still loose
 
-* E2 needs ≥6GB RAM to actually run the model -- our 2GB sandbox
-  can't host it. The wiring is in place; CI on a beefier host would
-  flip it on.
+* E2 only fires when the Gemma 4 backend (llama.cpp + GGUF weights)
+  is locally installed. The dispatcher gracefully degrades to
+  ``status="unavailable"`` otherwise. Quality is bounded by Gemma 4
+  E2B's general-VLM OCR ability (not as sharp as a dedicated OCR
+  model like DeepSeek-OCR or Nougat) -- we accept this in exchange
+  for not shipping a second model.
 * E5 (pix2tex) ships as a wrapper but `pip install pix2tex` was not
   attempted on the sandbox in this session because the wheel pulls in
   X-Transformer + torchvision (~400 MB) which we'd rather not store

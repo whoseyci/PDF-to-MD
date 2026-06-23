@@ -121,7 +121,7 @@ the actual code.
 | ID | Module | One-liner |
 |----|--------|-----------|
 | E1 | `pipeline_v2/reading_order.py` | Multi-column reading-order recovery (1/2/3-col detection + column-then-y walk + banner re-insertion) — alternative to VILA, zero new deps |
-| E2 | `pipeline_v2/deepseek_ocr.py` | DeepSeek-OCR validator hook (lazy load, RAM-aware, opt-out via `PDF2MD_DISABLE_DEEPSEEK=1`) |
+| E2 | `pipeline_v2/gemma_ocr.py` | Low-confidence-page re-OCR via the **already-loaded Gemma 4** backend (no new model). Opt-out via `PDF2MD_DISABLE_GEMMA_OCR=1` |
 | E3 | `pipeline_v2/caption_pairing.py` | PDFigCapX-style figure↔caption pairing via negative-space matching. Corpus run: **90.6 % captions paired** (367/405 across 33 papers) |
 | E4 | `pipeline_v2/vision/diagram_extract.py` | Triangle/PCA-based arrow direction detector. Synthetic 10-case bench: **100 % (18/18)** vs prior baseline ~50 % |
 | E5 | `pipeline_v2/vision/equation_extract.py` | pix2tex equation→LaTeX wrapper, emits `$$…$$` markdown; opt-in (`pip install pix2tex`) |

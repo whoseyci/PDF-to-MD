@@ -435,18 +435,23 @@ def test_pix2tex_lazy(t):
             f"status sane: {r.status}")
 
 
-def test_deepseek_lazy(t):
-    """E2 -- DeepSeek-OCR module is importable and degrades gracefully."""
-    from pipeline_v2.deepseek_ocr import (available, OCRResult,
-                                            select_low_confidence_pages)
+def test_gemma_ocr_lazy(t):
+    """E2 (refactored) -- Gemma-4 OCR fallback is importable and
+    degrades gracefully when the backend isn't installed."""
+    from pipeline_v2.gemma_ocr import (available, OCRResult,
+                                          select_low_confidence_pages,
+                                          page_chars_from_provenance)
     t.check(isinstance(available(), bool), "available() returns bool")
-    # Helper test
+    # Selector
     sel = select_low_confidence_pages({1: 50, 2: 5000, 3: 80}, threshold=100)
     t.check(sel == [1, 3], f"low-conf pages: {sel}")
-    # With no model loaded we should get an unavailable result, not a crash
-    from pathlib import Path as _P
+    # Provenance parser robustness on nonexistent file
+    parsed = page_chars_from_provenance(Path("/nonexistent_provenance.json"))
+    t.check(parsed == {}, "graceful on missing provenance")
+    # Default OCRResult sane
     res = OCRResult()
     t.check(res.status == "unavailable", "default status is unavailable")
+    t.check(res.backend == "gemma4-e2b", f"backend tag: {res.backend}")
 
 
 def test_reading_order_e1(t):
@@ -507,7 +512,7 @@ def main():
     print("=== reading order (E1) ==="); test_reading_order_e1(t)
     print("=== caption pairing (E3) ==="); test_caption_pairing_e3(t)
     print("=== pix2tex (E5) lazy ==="); test_pix2tex_lazy(t)
-    print("=== deepseek-ocr (E2) lazy ==="); test_deepseek_lazy(t)
+    print("=== gemma-ocr (E2 refactored) lazy ==="); test_gemma_ocr_lazy(t)
     return t.report()
 
 
