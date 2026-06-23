@@ -42,23 +42,65 @@ sandbox — see `output/OPTIMIZATION_NOTES.md` sections (h) through
 ## Quick start
 
 ```bash
-# 1. Convert one PDF
+# 1. Convert one PDF (fast path)
 python3 -m pipeline_v2.convert path/to/paper.pdf
 
-# 2. Batch over a directory
+# 2. Convert with all optional enrichment passes
+python3 -m pipeline_v2.convert path/to/paper.pdf \
+    --enrich-refs    # augment refs with refextract structured fields
+    --verify-refs    # cross-check refs against Crossref + OpenAlex
+    --docling        # also emit paper.docling.json (RAG-ready)
+
+# 3. Batch over a directory
 python3 -m pipeline_v2.batch /path/to/pdfs --output /path/to/output
 
-# 3. Run the figure-vision pass over already-converted papers
+# 4. Run the figure-vision pass over already-converted papers
 python3 -m pipeline_v2.vision.run_all \
     --output-dir /path/to/output \
     --model gemma4-e2b \
     --paper my-paper
 
-# 4. Debug a single figure
+# 5. Debug a single figure
 python3 -m pipeline_v2.vision.chart_extract.cli \
     path/to/figure.png --kind bar_chart \
     --debug-overlay overlay.png
 ```
+
+## What's in the box
+
+This is a multi-track pipeline that fuses the best ideas from
+several state-of-the-art PDF→MD projects:
+
+* **Text & layout**: `pymupdf4llm` base + custom postprocessing for
+  ligatures, soft hyphens, column flow, MDPI sidebars, journal-layout
+  detection.
+* **References**:
+  * Our own regex parser (`references_v2.py`) for in-text citation linking
+  * `--enrich-refs` adds structured DOI/journal/year via
+    `inspirehep/refextract` (`refextract_bridge.py`)
+  * `--verify-refs` cross-checks against Crossref + OpenAlex
+    (`ref_verifier.py`, inspired by markrussinovich/refchecker) to
+    flag fabricated or garbled citations
+* **Figures** -- three complementary tracks:
+  * `chart_extract/` -- classical (OpenCV + tesseract) geometric
+    extraction. Real markdown tables with real numbers, no hallucination.
+  * `chart_extract/deplot.py` -- Google's `google/deplot` specialist
+    model as a fallback for chart kinds our geometric pipeline doesn't
+    cover. Use `CascadingExtractor([SimpleBars(), DeplotExtractor()])`
+    to chain them.
+  * `mermaid_extract.py` -- diagram → Mermaid block via Gemma 4 E2B,
+    for conceptual diagrams (TPB, causal loops, decision trees)
+  * `figure_prompts.py` -- marker-style per-subtype VLM prompts for
+    algorithms, code listings, equations, screenshots, gels/blots
+* **Output schema**:
+  * `paper.md` -- the headline output
+  * `paper.json` -- our own schema (everything we extracted)
+  * `paper.docling.json` (optional, `--docling`) -- DoclingDocument-
+    compatible schema, drop-in for LlamaIndex/LangChain RAG pipelines
+* **Selective LLM dispatch** (`llm_boost.py`): marker `--use_llm`
+  pattern. Per-block decision (`skip`/`validate`/`replace`/`extract`)
+  based on classical-extractor confidence so LLM budget only burns
+  on blocks that need it.
 
 ## Gemma 4 E2B setup (one-time)
 
@@ -104,7 +146,7 @@ export GEMMA4_MMPROJ=/path/to/mmproj-F16.gguf
 pipeline_v2/
 ├── batch.py              # multi-PDF runner
 ├── build_index.py        # builds output/README.md master index
-├── convert.py            # single-PDF orchestrator
+├── convert.py            # single-PDF orchestrator (+ --enrich-refs, --verify-refs, --docling)
 ├── diag2.py              # quality-diagnostics helper
 ├── figures.py            # image extraction + caption pairing + OCR
 ├── first_page_layout.py  # journal-layout detectors
@@ -113,11 +155,16 @@ pipeline_v2/
 ├── postprocess_md.py     # heavy markdown cleanup
 ├── references_v2.py      # bibliography + inline-citation linking
 ├── tables_v2.py          # junk-table filter
+├── refextract_bridge.py  # NEW: inspirehep/refextract integration
+├── ref_verifier.py       # NEW: Crossref/OpenAlex verifier (refchecker-style)
+├── docling_export.py     # NEW: DoclingDocument-compatible JSON output
+├── llm_boost.py          # NEW: marker-style selective LLM dispatcher
 └── vision/
     ├── base.py              # VisionModel ABC, FigureKind enum
     ├── classifier.py        # caption → FigureKind
     ├── factory.py           # make_model("gemma4-e2b" | "stub")
     ├── prompts.py           # per-kind prompt templates
+    ├── figure_prompts.py    # NEW: marker-style per-subtype prompts
     ├── validators.py        # output post-processing
     ├── runner.py            # process_figure() — orchestrates everything
     ├── run_all.py           # CLI: batch over a paper
@@ -134,12 +181,27 @@ pipeline_v2/
         ├── legend_ocr.py        # legend swatch ↔ label mapping
         ├── panel_split.py       # multi-panel grid detector
         ├── multipanel.py        # MultiPanelExtractor wrapper
+        ├── multi_extractor.py   # NEW: CascadingExtractor (geometric + DePlot)
         ├── simple_bars.py       # bar-chart extractor (full impl)
         ├── stubs.py             # placeholders for stacked/box/pie/scatter/line
+        ├── deplot.py            # NEW: Google DePlot integration (transformers)
+        ├── deplot_subprocess.py # NEW: subprocess-isolated DePlot
         ├── registry.py          # FigureKind → ChartExtractor
         ├── validator.py         # VLM-as-validator (OK/FLAG verdict)
         └── cli.py               # debug CLI for one figure
 ```
+
+### Optional dependencies
+
+- **`refextract`** + **`poppler-utils`** (for `--enrich-refs`)
+- **`docling_core`** (for `--docling` validation; ~1 MB)
+- **`transformers`** + **`torch`** + **`google/deplot`** model
+  (for DePlot chart extraction; ~1.1 GB model)
+- **`llama.cpp`** built from source + Gemma 4 E2B GGUF
+  (for the VLM tracks: diagram→mermaid, alt-text, validator)
+
+All optional — base pipeline works with just `pymupdf4llm`,
+`pdfplumber`, `pytesseract`, `Pillow`, `opencv-python-headless`.
 
 The complete geometric extractors for stacked-bars, box-plot, pie,
 scatter, and line are documented in `output/OPTIMIZATION_NOTES.md`

@@ -206,7 +206,20 @@ def process_figure(
         _save(sidecar, result)
         return result
 
-    prompt = build_prompt(kind, caption, ocr_text)
+    # For UNKNOWN figures, use marker-style per-subtype prompts when
+    # caption keywords suggest algorithm / code / equation / etc.
+    if kind == FigureKind.UNKNOWN:
+        from .figure_prompts import prompt_for_caption
+        fp = prompt_for_caption(caption)
+        if fp.subkind != "generic":
+            prompt = fp.prompt
+            result.extracted_data = {**(result.extracted_data or {}),
+                                       "figure_subkind": fp.subkind,
+                                       "expected_format": fp.expected_format}
+        else:
+            prompt = build_prompt(kind, caption, ocr_text)
+    else:
+        prompt = build_prompt(kind, caption, ocr_text)
     result.prompt = prompt
     max_new_tokens = _MAX_NEW_TOKENS.get(kind, 120)
 

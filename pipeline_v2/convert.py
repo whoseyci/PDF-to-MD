@@ -664,17 +664,83 @@ def convert_pdf(pdf_path, out_root, force=False):
     return {"slug": slug, "stats": stats, "skipped": False}
 
 
+def _post_convert_enrich(pdf_path, out_dir, *,
+                          enrich_refs=False, verify_refs=False,
+                          export_docling=False):
+    """Optional post-processing: refextract enrichment, ref verification,
+    Docling-compatible export. Each step is independent and opt-in.
+    """
+    paper_json = out_dir / "paper.json"
+    if not paper_json.exists():
+        return
+    paper = json.loads(paper_json.read_text(encoding="utf-8"))
+
+    if enrich_refs:
+        try:
+            from refextract_bridge import enrich_references
+            enrich_references(paper.get("references") or [], pdf_path)
+            print(f"   enriched references via refextract")
+        except Exception as e:
+            print(f"   refextract enrichment failed: {e}")
+
+    if verify_refs:
+        try:
+            from ref_verifier import verify_references
+            summary = verify_references(paper.get("references") or [],
+                                          sleep_between=0.1)
+            print(f"   verified references: {summary}")
+        except Exception as e:
+            print(f"   ref verification failed: {e}")
+
+    if enrich_refs or verify_refs:
+        paper_json.write_text(json.dumps(paper, indent=2,
+                                           ensure_ascii=False),
+                                encoding="utf-8")
+        (out_dir / "references.json").write_text(
+            json.dumps(paper.get("references") or [], indent=2,
+                        ensure_ascii=False), encoding="utf-8")
+
+    if export_docling:
+        try:
+            from docling_export import write_docling_json
+            md_path = out_dir / "paper.md"
+            out_path = write_docling_json(
+                paper_json,
+                pdf_path=pdf_path,
+                markdown_path=md_path if md_path.exists() else None,
+                validate=True)
+            print(f"   wrote docling export: {out_path.name}")
+        except Exception as e:
+            print(f"   docling export failed: {e}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("pdfs", nargs="+", help="PDF paths")
     ap.add_argument("--out", default="/home/user/output_v2")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--enrich-refs", action="store_true",
+                     help="Augment refs with refextract structured fields")
+    ap.add_argument("--verify-refs", action="store_true",
+                     help="Verify refs against Crossref/OpenAlex (slow, network)")
+    ap.add_argument("--docling", action="store_true",
+                     help="Also emit paper.docling.json (DoclingDocument)")
     args = ap.parse_args()
     out_root = Path(args.out)
     out_root.mkdir(exist_ok=True)
     for p in args.pdfs:
         try:
             convert_pdf(Path(p), out_root, force=args.force)
+            # Resolve output dir from slug
+            slug = slugify(Path(p).stem)
+            out_dir = out_root / slug
+            if out_dir.exists():
+                _post_convert_enrich(
+                    Path(p), out_dir,
+                    enrich_refs=args.enrich_refs,
+                    verify_refs=args.verify_refs,
+                    export_docling=args.docling,
+                )
         except Exception as e:
             import traceback
             print(f"   FAIL on {p}: {e}")
