@@ -1,0 +1,236 @@
+{
+  "benchmark_seconds": 13.53,
+  "options": {
+    "link_figures": true,
+    "pair_captions": true
+  },
+  "aggregates": {
+    "n_papers": 35,
+    "total_pages": 1194,
+    "total_figures": 476,
+    "total_references": 4633,
+    "total_citations_linked": 2927,
+    "mean_coverage": 1.01,
+    "mean_conversion_seconds": 24.16,
+    "pct_figures_with_caption": 26.5,
+    "pct_figures_chart_extracted": 0.0,
+    "pct_figures_mermaid": 0.0,
+    "pct_figures_alt_text_only": 100.0,
+    "pct_refs_with_doi": 14.6,
+    "pct_refs_verified": 0.0,
+    "n_with_docling": 0,
+    "n_high_confidence": 35
+  },
+  "caption_pairing": {
+    "per_paper": [
+      {
+        "slug": "baden-bohm-2023",
+        "n_captions": 7,
+        "n_paired": 7,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "carceles-rodriguez-et-al-2022",
+        "n_captions": 4,
+        "n_paired": 2,
+        "pct_paired": 50.0
+      },
+      {
+        "slug": "cast-model-paper-2026",
+        "n_captions": 10,
+        "n_paired": 9,
+        "pct_paired": 90.0
+      },
+      {
+        "slug": "cerda-et-al-2022",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "chapela-oliva-et-al-2024-viticulture-cap-critical-analysis",
+        "n_captions": 3,
+        "n_paired": 3,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "cuadros-casanova-et-al-2022",
+        "n_captions": 1,
+        "n_paired": 1,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "duran-zuazo-et-al-2020-benefits-organic-olive-rainfed-system",
+        "n_captions": 3,
+        "n_paired": 3,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "efthimiou-2024",
+        "n_captions": 8,
+        "n_paired": 8,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "fangliang-et-al-2024",
+        "n_captions": 11,
+        "n_paired": 11,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "frontiers-in-soil-science-2026",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "garcia-ruiz-castillo-llanque-et-al-2020",
+        "n_captions": 4,
+        "n_paired": 4,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "garcia-ruiz-castillo-llanque-et-al-2023",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "garrido-et-al-2026",
+        "n_captions": 6,
+        "n_paired": 4,
+        "pct_paired": 66.7
+      },
+      {
+        "slug": "gonzalez-rosado-et-al-2021",
+        "n_captions": 4,
+        "n_paired": 4,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "homet-et-al-2024",
+        "n_captions": 3,
+        "n_paired": 3,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "jimenez-et-al-2023-farming-system-soil-management-floristic",
+        "n_captions": 5,
+        "n_paired": 5,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "leal-filho-et-al-2026",
+        "n_captions": 4,
+        "n_paired": 4,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "lopez-bernal-et-al-2023",
+        "n_captions": 9,
+        "n_paired": 9,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "lopez-vicente-calvo-seas-alvarez-cerda-2020",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "marja-et-al-2022",
+        "n_captions": 1,
+        "n_paired": 1,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "mesas-et-al-2022",
+        "n_captions": 3,
+        "n_paired": 3,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "oecd-2023",
+        "n_captions": 229,
+        "n_paired": 207,
+        "pct_paired": 90.4
+      },
+      {
+        "slug": "pareja-sanchez-et-al-2024",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "penuela-et-al-2025",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "pereira-de-souza-et-al-2023",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "repullo-ruiberriz-de-torres-et-al-2021",
+        "n_captions": 9,
+        "n_paired": 1,
+        "pct_paired": 11.1
+      },
+      {
+        "slug": "rodriguez-lizana-et-al-2020",
+        "n_captions": 6,
+        "n_paired": 3,
+        "pct_paired": 50.0
+      },
+      {
+        "slug": "rodriguez-ruiz-gomez-munoz-2025",
+        "n_captions": 4,
+        "n_paired": 4,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "s11104-012-1395-0",
+        "n_captions": 3,
+        "n_paired": 3,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "s11356-016-8339-9",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "sanchez-moreno-et-al-2015-tillage-herbicide-decrease-soil-bi",
+        "n_captions": 4,
+        "n_paired": 4,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "soil-use-and-management-2024-fernandezsoler-cover-crops-impr",
+        "n_captions": 6,
+        "n_paired": 6,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "torrus-castillo-et-al-2022",
+        "n_captions": 10,
+        "n_paired": 10,
+        "pct_paired": 100.0
+      },
+      {
+        "slug": "tziolas-et-al-2025",
+        "n_captions": 0,
+        "n_paired": 0,
+        "pct_paired": 0.0
+      }
+    ],
+    "total_captions": 405,
+    "total_paired": 367,
+    "pct_paired": 90.6
+  },
+  "n_papers": 35
+}

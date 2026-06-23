@@ -574,11 +574,18 @@ def _nearest_node(pt: Tuple[int, int], nodes: List[DiagramNode]
 
 
 def _detect_arrowhead(mask: np.ndarray, ep1: Tuple[int, int],
-                       ep2: Tuple[int, int], radius: int = 12) -> int:
-    """
-    Crude direction detection: count edge pixels within `radius` of
-    each endpoint. The arrowhead end has MORE pixels (because of the
-    triangular tip splitting into two flanks).
+                       ep2: Tuple[int, int], radius: int = 14) -> int:
+    """E4 -- Triangle-based direction detection.
+
+    For each endpoint:
+      1. Crop a small window of the edge mask centred on the endpoint
+      2. Compute the principal axis of the local pixels (via PCA)
+      3. Measure the "perpendicular spread" of pixels around that axis
+      4. The arrowhead end will have a much wider perpendicular spread
+         than the line stem (because the arrow flares into a triangle).
+
+    Falls back to a density check (which the previous implementation
+    used exclusively) when PCA is degenerate.
 
     Returns:
        1 -- arrowhead at ep1
@@ -586,18 +593,98 @@ def _detect_arrowhead(mask: np.ndarray, ep1: Tuple[int, int],
        0 -- can't tell (undirected)
     """
     h, w = mask.shape
-    def density(pt):
+
+    def perp_spread(pt):
         x, y = pt
         x0, x1 = max(0, x - radius), min(w, x + radius + 1)
         y0, y1 = max(0, y - radius), min(h, y + radius + 1)
-        return int(mask[y0:y1, x0:x1].sum())
-    d1 = density(ep1); d2 = density(ep2)
-    if d1 == 0 and d2 == 0: return 0
-    # Need at least 20% asymmetry to call it
-    if max(d1, d2) == 0: return 0
-    ratio = abs(d1 - d2) / max(d1, d2)
-    if ratio < 0.2: return 0
-    return 1 if d1 > d2 else 2
+        sub = mask[y0:y1, x0:x1]
+        if sub.size == 0:
+            return 0.0, 0
+        ys_local, xs_local = np.where(sub)
+        n = len(xs_local)
+        if n < 6:
+            return 0.0, n
+        # Centre
+        cx = xs_local.mean(); cy = ys_local.mean()
+        dx = xs_local - cx;   dy = ys_local - cy
+        # PCA via 2x2 covariance eigendecomposition
+        cxx = float((dx * dx).mean())
+        cyy = float((dy * dy).mean())
+        cxy = float((dx * dy).mean())
+        # Eigenvalues of [[cxx,cxy],[cxy,cyy]]
+        tr = cxx + cyy
+        det = cxx * cyy - cxy * cxy
+        disc = max(0.0, (tr / 2.0) ** 2 - det)
+        lam_major = tr / 2.0 + math.sqrt(disc)
+        lam_minor = max(0.0, tr / 2.0 - math.sqrt(disc))
+        # "Spread perpendicular to principal axis" = sqrt(minor eigval)
+        return math.sqrt(lam_minor), n
+
+    s1, n1 = perp_spread(ep1)
+    s2, n2 = perp_spread(ep2)
+
+    # If neither endpoint has enough local pixels, give up
+    if n1 < 6 and n2 < 6:
+        return 0
+
+    # Primary signal: perpendicular spread (triangle vs line)
+    if max(s1, s2) > 0.6:
+        # Need at least 35% asymmetry, otherwise treat as undirected
+        if max(s1, s2) > 0:
+            ratio = abs(s1 - s2) / max(s1, s2)
+            if ratio >= 0.35:
+                return 1 if s1 > s2 else 2
+
+    # Fallback: pixel-density asymmetry (the old heuristic)
+    if max(n1, n2) > 0:
+        ratio = abs(n1 - n2) / max(n1, n2)
+        if ratio >= 0.25:
+            return 1 if n1 > n2 else 2
+
+    return 0
+
+
+def _detect_isolated_arrowhead(
+    full_mask: np.ndarray, ep: Tuple[int, int], radius: int = 18
+) -> bool:
+    """Look near a given endpoint for a SMALL triangular component
+    that isn't part of the main edge stem. This catches arrowheads
+    that were drawn as separate shapes (common for SVG diagrams).
+
+    Returns True if a triangular blob ≤ 30% the size of the search
+    window is detected near ``ep`` AND it has 3 dominant convex
+    vertices.
+    """
+    try:
+        import cv2
+    except ImportError:
+        return False
+    h, w = full_mask.shape
+    x, y = ep
+    x0, x1 = max(0, x - radius), min(w, x + radius + 1)
+    y0, y1 = max(0, y - radius), min(h, y + radius + 1)
+    crop = full_mask[y0:y1, x0:x1].astype(np.uint8) * 255
+    if crop.size == 0:
+        return False
+    n_comp, labels, stats, _ = cv2.connectedComponentsWithStats(crop, 8)
+    for k in range(1, n_comp):
+        area = stats[k, cv2.CC_STAT_AREA]
+        if area < 6 or area > 0.30 * crop.size:
+            continue
+        comp_mask = (labels == k).astype(np.uint8)
+        contours, _ = cv2.findContours(
+            comp_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            continue
+        cnt = max(contours, key=cv2.contourArea)
+        peri = cv2.arcLength(cnt, True)
+        if peri < 8:
+            continue
+        approx = cv2.approxPolyDP(cnt, 0.06 * peri, True)
+        if 3 <= len(approx) <= 4:
+            return True
+    return False
 
 
 # --------------------------------------------------------------------

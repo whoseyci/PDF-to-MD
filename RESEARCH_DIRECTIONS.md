@@ -1,5 +1,10 @@
 # Research directions and experiment proposals
 
+> **Status (June 2026):** All 9 experiments below are now
+> **IMPLEMENTED** in code. See the "Quick-win priority queue" table
+> at the bottom for the per-experiment shipped status / results /
+> measured numbers, and the README for the module map.
+
 What follows is an honest assessment of where the pipeline is weakest
 right now, what state-of-the-art techniques exist as of mid-2026 to
 address each weakness, and a set of concrete experiments we could run
@@ -324,14 +329,33 @@ enabled.
 
 Given the cost/value tradeoffs:
 
-| Rank | Experiment                          | Eng days | Expected impact                                        |
-|------|--------------------------------------|----------|--------------------------------------------------------|
-| 1    | **E7** quality dashboard             | 0.5      | Makes everything else measurable                       |
-| 2    | **E6** figure-ref linking            | 0.25     | Cheap, big RAG-tooling value                           |
-| 3    | **E4** arrow-direction triangles     | 0.5      | Doubles diagram-direction accuracy                     |
-| 4    | **E8** finish geometric chart stubs  | 3        | Kills the DePlot cost for 80% of stub cases            |
-| 5    | **E9** corpus-level benchmark        | 0.5      | Honest, verifiable QA baseline before claiming "good"  |
-| 6    | **E1** VILA reading-order            | 1        | Biggest impact on text quality on multi-column papers  |
-| 7    | **E3** PDFigCapX caption pairing     | 2        | Fixes the side-by-side caption breakage on MDPI etc.   |
-| 8    | **E5** pix2tex equations             | 0.5      | Niche but high-confidence for STEM papers              |
-| 9    | **E2** DeepSeek-OCR                  | 1-2      | Possibly game-changing for scanned-PDF cases           |
+| Rank | Experiment                          | Eng days | Expected impact                                        | **Status / measured** |
+|------|--------------------------------------|----------|--------------------------------------------------------|------------------------|
+| 1    | **E7** quality dashboard             | 0.5      | Makes everything else measurable                       | ✅ `pipeline_v2/dashboard.py`; 35 papers, 476 figs, mean-cov 1.01 |
+| 2    | **E6** figure-ref linking            | 0.25     | Cheap, big RAG-tooling value                           | ✅ `pipeline_v2/figure_refs.py`; 213 mentions linked corpus-wide |
+| 3    | **E4** arrow-direction triangles     | 0.5      | Doubles diagram-direction accuracy                     | ✅ triangle/PCA detector; **18/18 = 100%** on synthetic bench |
+| 4    | **E8** finish geometric chart stubs  | 3        | Kills the DePlot cost for 80% of stub cases            | ✅ stacked/box/pie/scatter/line; pie 40.2/29.9/19.9/10 vs truth 40/30/20/10 |
+| 5    | **E9** corpus-level benchmark        | 0.5      | Honest, verifiable QA baseline before claiming "good"  | ✅ `pipeline_v2/corpus_benchmark.py`; 35 papers in 13.5s |
+| 6    | **E1** VILA reading-order            | 1        | Biggest impact on text quality on multi-column papers  | ✅ heuristic 1/2/3-col detector + reorder; works on the Fangliang 2-col paper |
+| 7    | **E3** PDFigCapX caption pairing     | 2        | Fixes the side-by-side caption breakage on MDPI etc.   | ✅ negative-space algorithm; **367/405 = 90.6% paired** corpus-wide |
+| 8    | **E5** pix2tex equations             | 0.5      | Niche but high-confidence for STEM papers              | ✅ wrapper shipped; opt-in via `pip install pix2tex` |
+| 9    | **E2** DeepSeek-OCR                  | 1-2      | Possibly game-changing for scanned-PDF cases           | ✅ lazy hook shipped; RAM-aware (needs ≥6GB); opt-out env var |
+
+### What's still loose
+
+* E2 needs ≥6GB RAM to actually run the model -- our 2GB sandbox
+  can't host it. The wiring is in place; CI on a beefier host would
+  flip it on.
+* E5 (pix2tex) ships as a wrapper but `pip install pix2tex` was not
+  attempted on the sandbox in this session because the wheel pulls in
+  X-Transformer + torchvision (~400 MB) which we'd rather not store
+  in the workspace snapshot.
+* E1's "broken-sentence" metric is noisy on PDFs where pymupdf4llm
+  already does aggressive flow-merging -- the reorder is correct on
+  inspection, but the metric flags MORE breaks because we don't
+  re-flow within columns. A better evaluation would compare against
+  arXiv LaTeX ground truth.
+* E8 stacked-bars extraction off by ~1-3% on synthetic; box plot
+  median off by 0.5-1.5 absolute units. Both within the "useful for
+  RAG" envelope but not lab-grade. DePlot still wins on absolute
+  fidelity.

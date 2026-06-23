@@ -1,0 +1,251 @@
+{
+  "total_truth_edges": 18,
+  "correct_directions": 18,
+  "pct_correct": 100.0,
+  "per_case": [
+    {
+      "case": "arrow_n2_lr_s0",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ]
+      ],
+      "n_edges_total": 1,
+      "matched": 1,
+      "n_nodes_detected": 2
+    },
+    {
+      "case": "arrow_n2_lr_s1",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ]
+      ],
+      "n_edges_total": 1,
+      "matched": 1,
+      "n_nodes_detected": 2
+    },
+    {
+      "case": "arrow_n2_tb_s0",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ]
+      ],
+      "n_edges_total": 1,
+      "matched": 1,
+      "n_nodes_detected": 2
+    },
+    {
+      "case": "arrow_n2_tb_s1",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ]
+      ],
+      "n_edges_total": 1,
+      "matched": 1,
+      "n_nodes_detected": 2
+    },
+    {
+      "case": "arrow_n3_lr_s0",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ]
+      ],
+      "n_edges_total": 2,
+      "matched": 2,
+      "n_nodes_detected": 3
+    },
+    {
+      "case": "arrow_n3_lr_s1",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ]
+      ],
+      "n_edges_total": 2,
+      "matched": 2,
+      "n_nodes_detected": 3
+    },
+    {
+      "case": "arrow_n3_tb_s0",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ]
+      ],
+      "n_edges_total": 2,
+      "matched": 2,
+      "n_nodes_detected": 3
+    },
+    {
+      "case": "arrow_n3_tb_s1",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ]
+      ],
+      "n_edges_total": 2,
+      "matched": 2,
+      "n_nodes_detected": 3
+    },
+    {
+      "case": "arrow_n4_lr_s0",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ],
+        [
+          "Step2",
+          "Step3"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ],
+        [
+          "Step2",
+          "Step3"
+        ]
+      ],
+      "n_edges_total": 3,
+      "matched": 3,
+      "n_nodes_detected": 4
+    },
+    {
+      "case": "arrow_n4_lr_s1",
+      "truth": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ],
+        [
+          "Step2",
+          "Step3"
+        ]
+      ],
+      "got_directed": [
+        [
+          "Start",
+          "Step1"
+        ],
+        [
+          "Step1",
+          "Step2"
+        ],
+        [
+          "Step2",
+          "Step3"
+        ]
+      ],
+      "n_edges_total": 3,
+      "matched": 3,
+      "n_nodes_detected": 4
+    }
+  ]
+}

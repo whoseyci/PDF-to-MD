@@ -112,6 +112,31 @@ several state-of-the-art PDF→MD projects:
   based on classical-extractor confidence so LLM budget only burns
   on blocks that need it.
 
+## Research-track features (E1–E9, all shipped)
+
+All 9 experiments proposed in `RESEARCH_DIRECTIONS.md` are now
+implemented. See that file for design notes; the modules below ship
+the actual code.
+
+| ID | Module | One-liner |
+|----|--------|-----------|
+| E1 | `pipeline_v2/reading_order.py` | Multi-column reading-order recovery (1/2/3-col detection + column-then-y walk + banner re-insertion) — alternative to VILA, zero new deps |
+| E2 | `pipeline_v2/deepseek_ocr.py` | DeepSeek-OCR validator hook (lazy load, RAM-aware, opt-out via `PDF2MD_DISABLE_DEEPSEEK=1`) |
+| E3 | `pipeline_v2/caption_pairing.py` | PDFigCapX-style figure↔caption pairing via negative-space matching. Corpus run: **90.6 % captions paired** (367/405 across 33 papers) |
+| E4 | `pipeline_v2/vision/diagram_extract.py` | Triangle/PCA-based arrow direction detector. Synthetic 10-case bench: **100 % (18/18)** vs prior baseline ~50 % |
+| E5 | `pipeline_v2/vision/equation_extract.py` | pix2tex equation→LaTeX wrapper, emits `$$…$$` markdown; opt-in (`pip install pix2tex`) |
+| E6 | `pipeline_v2/figure_refs.py` | Links body-text "Figure N" / "Fig. N" / "Figs 3-5" mentions back to figure records (`fig.referenced_in[]`). Corpus run: 213 mentions linked |
+| E7 | `pipeline_v2/dashboard.py` | Auto-generated `output/QUALITY_DASHBOARD.md` per-paper + corpus aggregates + worst-N list |
+| E8 | `pipeline_v2/vision/chart_extract/{stacked_bars,box_plot,pie_chart,scatter_plot,line_plot}.py` | Full geometric extractors (no DePlot fallback needed on clean inputs). Synthetic bench: pie 40/30/20/10 → 40.2/29.9/19.9/10.0; stacked 4×3 matrix recovered; line+scatter+box ok |
+| E9 | `pipeline_v2/corpus_benchmark.py` | Honest corpus-level benchmark; runs E3+E6+E7 over all 35 papers and emits `output/CORPUS_BENCHMARK.md` + `.json` |
+
+Run them all over the existing corpus:
+
+```bash
+python3 -m pipeline_v2.corpus_benchmark --link-figures --pair-captions
+# wrote output/CORPUS_BENCHMARK.md and output/CORPUS_BENCHMARK.json
+```
+
 ## Gemma 4 E2B setup (one-time)
 
 The vision backend uses Gemma 4 E2B via `llama.cpp`. Once-only setup:

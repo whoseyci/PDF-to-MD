@@ -1,20 +1,22 @@
-"""Placeholder extractors that return UNSUPPORTED.
+"""Stubs / compat shims.
 
-The full geometric implementations (stacked_bars, box_plot, pie_chart,
-scatter, line_plot) lived here in the previous session. They're not
-re-emitted in this slimmer build to keep the package under the
-workspace snapshot cap. The registry routes those kinds to these
-stubs, which signal UNSUPPORTED so the runner cleanly falls back to
-the Gemma 4 VLM path.
-
-To restore the full implementations, see OPTIMIZATION_NOTES.md
-section (k) which documents what each extractor did and how to
-rebuild them.
+E8 (Jun 2026): full geometric implementations exist now in
+``stacked_bars.py``, ``box_plot.py``, ``pie_chart.py``,
+``scatter_plot.py`` and ``line_plot.py``. We re-export them from
+this module so any older imports (e.g. ``from .stubs import
+PieChartExtractor``) still work, and we keep an
+``_UnsupportedExtractor`` available for kinds that genuinely have no
+geometric extractor (e.g. heatmaps).
 """
 from __future__ import annotations
 from pathlib import Path
 
 from .base import ChartExtractor, ChartExtractionResult, ExtractionStatus
+from .stacked_bars import StackedBarsExtractor  # noqa: F401
+from .box_plot import BoxPlotExtractor  # noqa: F401
+from .pie_chart import PieChartExtractor  # noqa: F401
+from .scatter_plot import ScatterExtractor  # noqa: F401
+from .line_plot import LinePlotExtractor  # noqa: F401
 
 
 class _UnsupportedExtractor(ChartExtractor):
@@ -27,26 +29,6 @@ class _UnsupportedExtractor(ChartExtractor):
         )
 
 
-class StackedBarsExtractor(_UnsupportedExtractor):
-    name = "stacked_bars/stub"
-    why = "stacked bars stub (full impl in OPTIMIZATION_NOTES history)"
-
-
-class BoxPlotExtractor(_UnsupportedExtractor):
-    name = "box_plot/stub"
-    why = "box plot stub (full impl in OPTIMIZATION_NOTES history)"
-
-
-class PieChartExtractor(_UnsupportedExtractor):
-    name = "pie_chart/stub"
-    why = "pie chart stub (full impl in OPTIMIZATION_NOTES history)"
-
-
-class ScatterExtractor(_UnsupportedExtractor):
-    name = "scatter/stub"
-    why = "scatter stub (full impl in OPTIMIZATION_NOTES history)"
-
-
-class LinePlotExtractor(_UnsupportedExtractor):
-    name = "line_plot/stub"
-    why = "line plot stub (full impl in OPTIMIZATION_NOTES history)"
+class HeatmapExtractor(_UnsupportedExtractor):
+    name = "heatmap/stub"
+    why = "heatmap geometric extractor not implemented"

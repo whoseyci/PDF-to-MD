@@ -1,0 +1,133 @@
+{
+  "stacked": {
+    "status": "ok",
+    "reason": "extracted",
+    "elapsed_s": 0.582,
+    "categories": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "n_series": 3,
+    "matrix": [
+      [
+        3.031,
+        7.003,
+        10.035
+      ],
+      [
+        5.958,
+        5.017,
+        15.052
+      ],
+      [
+        3.972,
+        12.021,
+        8.049
+      ],
+      [
+        7.944,
+        3.972,
+        20.07
+      ]
+    ],
+    "truth_totals": [
+      20,
+      26,
+      24,
+      32
+    ]
+  },
+  "pie": {
+    "status": "ok",
+    "reason": "4 wedges",
+    "elapsed_s": 0.012,
+    "percents": [
+      40.19,
+      29.9,
+      19.89,
+      10.01
+    ],
+    "truth": [
+      40,
+      30,
+      20,
+      10
+    ]
+  },
+  "line": {
+    "status": "ok",
+    "reason": "2 series",
+    "elapsed_s": 0.395,
+    "n_series": 2,
+    "samples_per_series": [
+      12,
+      12
+    ]
+  },
+  "scatter": {
+    "status": "ok",
+    "reason": "21 markers, 2 clusters",
+    "elapsed_s": 0.479,
+    "n_clusters": 2,
+    "summary": [
+      {
+        "color_key": [
+          1,
+          3,
+          3
+        ],
+        "n_points": 16,
+        "x_mean": 6.712,
+        "y_mean": 8.036,
+        "x_min": 5.983,
+        "x_max": 7.952,
+        "y_min": 6.773,
+        "y_max": 9.697
+      },
+      {
+        "color_key": [
+          8,
+          2,
+          2
+        ],
+        "n_points": 5,
+        "x_mean": 1.982,
+        "y_mean": 2.003,
+        "x_min": 1.118,
+        "x_max": 3.135,
+        "y_min": 1.408,
+        "y_max": 2.883
+      }
+    ],
+    "truth": {
+      "A_mean": [
+        2,
+        2
+      ],
+      "B_mean": [
+        7,
+        8
+      ]
+    }
+  },
+  "box": {
+    "status": "ok",
+    "reason": "4 boxes",
+    "elapsed_s": 0.442,
+    "n_boxes": 4,
+    "medians": [
+      6.513,
+      8.479,
+      3.721,
+      11.035
+    ],
+    "truth_medians": [
+      5,
+      8,
+      3,
+      10
+    ]
+  }
+}

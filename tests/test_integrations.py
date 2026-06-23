@@ -339,6 +339,156 @@ def test_cascading_extractor(t):
             f"both extractors ran ({len(cascade_results2)} results)")
 
 
+def test_figure_refs(t):
+    """E6 -- figure-reference linking."""
+    from pipeline_v2.figure_refs import (find_mentions, _expand_nums,
+                                            split_paragraphs, link_figures)
+    t.check(_expand_nums("3") == [3], "expand single num")
+    t.check(_expand_nums("3-5") == [3, 4, 5], "expand range")
+    t.check(_expand_nums("3, 4 and 7") == [3, 4, 7], "expand list")
+    mentions = find_mentions(
+        "We show in Figure 3 and Figs. 4-5 that ...")
+    nums = sorted({n for (_, _, ns) in mentions for n in ns})
+    t.check(nums == [3, 4, 5], f"all numbers extracted: {nums}")
+    # Whole-paper link
+    paper = {"figures": [
+        {"id": "fig-001", "caption_number": "1"},
+        {"id": "fig-003", "caption_number": "3"},
+    ]}
+    md = "Para one says nothing.\n\nIn Figure 3 we see the result.\n\nFigs. 1 and 3 again."
+    link_figures(paper, md)
+    counts = {f["id"]: len(f["referenced_in"]) for f in paper["figures"]}
+    t.check(counts["fig-003"] == 2, f"fig-003 got 2 mentions: {counts}")
+    t.check(counts["fig-001"] == 1, f"fig-001 got 1 mention: {counts}")
+
+
+def test_dashboard(t):
+    """E7 -- dashboard renders without crashing."""
+    from pipeline_v2.dashboard import (aggregate, render_markdown,
+                                          PaperStats, _pct)
+    t.check(_pct(3, 10) == 30.0, "_pct works")
+    rows = [PaperStats(slug="x", n_pages=10, n_figures=5,
+                        n_figures_with_caption=4, coverage=0.95),
+            PaperStats(slug="y", n_pages=20, n_figures=8,
+                        n_figures_with_caption=8, coverage=1.02)]
+    agg = aggregate(rows)
+    t.check(agg["total_pages"] == 30, "totals")
+    t.check(agg["pct_figures_with_caption"] == 92.3, f"pct: {agg['pct_figures_with_caption']}")
+    md = render_markdown(rows, agg)
+    t.check("# Pipeline-v2 quality dashboard" in md, "header in md")
+    t.check("| x |" in md, "row x in md")
+
+
+def test_chart_extractors_synthetic(t):
+    """E8 -- new geometric chart extractors work on synthetic fixtures."""
+    fixtures_dir = Path("output") / "_chart_e8"
+    if not fixtures_dir.exists():
+        # Generate them
+        from tests import test_chart_extractors as tce
+        if tce.HAS_MPL:
+            tce.run()
+    pie_p = fixtures_dir / "pie.png"
+    if pie_p.exists():
+        from pipeline_v2.vision.chart_extract.pie_chart import PieChartExtractor
+        out = PieChartExtractor().extract(pie_p)
+        # Pie test fixture: [40, 30, 20, 10]
+        vals = sorted(out.values, reverse=True)
+        t.check(len(vals) == 4, f"pie 4 slices: {vals}")
+        t.check(abs(vals[0] - 40) < 2, f"pie largest ~40: {vals[0]}")
+        t.check(abs(vals[3] - 10) < 2, f"pie smallest ~10: {vals[3]}")
+    stacked_p = fixtures_dir / "stacked.png"
+    if stacked_p.exists():
+        from pipeline_v2.vision.chart_extract.stacked_bars import StackedBarsExtractor
+        out = StackedBarsExtractor().extract(stacked_p)
+        t.check(len(out.matrix) >= 3, f"stacked got matrix: {len(out.matrix)} rows")
+
+
+def test_caption_pairing_e3(t):
+    """E3 -- PDFigCapX-style caption pairing."""
+    from pipeline_v2.caption_pairing import (Caption, Region, pair_captions)
+    cap = Caption(page=1, number="1",
+                  text="Fig. 1. Test caption",
+                  bbox=(50, 400, 350, 430))
+    img_a = Region(page=1, bbox=(60, 100, 340, 380), is_image=True,
+                    image_id="x")
+    img_b = Region(page=1, bbox=(50, 500, 200, 580), is_image=True,
+                    image_id="y")
+    pairs = pair_captions([cap], [img_a, img_b], [])
+    t.check(len(pairs) == 1, "one pairing returned")
+    t.check(pairs[0].region == img_a, f"paired with above image, got {pairs[0].region}")
+    t.check(pairs[0].method == "nearest-above-image",
+            f"correct method: {pairs[0].method}")
+
+
+def test_pix2tex_lazy(t):
+    """E5 -- pix2tex equation extractor is importable and degrades gracefully."""
+    from pipeline_v2.vision.equation_extract import (extract_equation,
+                                                       available, EquationResult)
+    avail = available()
+    t.check(isinstance(avail, bool), "available() returns bool")
+    # On a sandbox without pix2tex installed, we should get unavailable
+    # status, NOT a crash:
+    from pathlib import Path as _P
+    r = extract_equation(_P("/tmp/nonexistent_eq.png"))
+    t.check(isinstance(r, EquationResult), "returns EquationResult")
+    t.check(r.status in ("unavailable", "error"),
+            f"status sane: {r.status}")
+
+
+def test_deepseek_lazy(t):
+    """E2 -- DeepSeek-OCR module is importable and degrades gracefully."""
+    from pipeline_v2.deepseek_ocr import (available, OCRResult,
+                                            select_low_confidence_pages)
+    t.check(isinstance(available(), bool), "available() returns bool")
+    # Helper test
+    sel = select_low_confidence_pages({1: 50, 2: 5000, 3: 80}, threshold=100)
+    t.check(sel == [1, 3], f"low-conf pages: {sel}")
+    # With no model loaded we should get an unavailable result, not a crash
+    from pathlib import Path as _P
+    res = OCRResult()
+    t.check(res.status == "unavailable", "default status is unavailable")
+
+
+def test_reading_order_e1(t):
+    """E1 -- multi-column reading order recovery."""
+    from pipeline_v2.reading_order import (TextBlock, detect_n_columns,
+                                              reorder_blocks)
+    # Simulate a 2-col page with banner on top
+    page_w = 600
+    blocks = [
+        TextBlock("Title", 50, 10, 550, 40, 1),       # banner
+        TextBlock("Left top", 50, 80, 280, 120, 1),
+        TextBlock("Right top", 320, 80, 550, 120, 1),
+        TextBlock("Left bot", 50, 200, 280, 240, 1),
+        TextBlock("Right bot", 320, 200, 550, 240, 1),
+    ]
+    n_cols = detect_n_columns(blocks, page_w)
+    t.check(n_cols == 2, f"detected 2 cols: got {n_cols}")
+    ordered = reorder_blocks(blocks, page_w)
+    texts = [b.text for b in ordered]
+    t.check(texts == ["Title", "Left top", "Left bot", "Right top", "Right bot"],
+            f"reading order: {texts}")
+
+
+def test_arrow_direction_e4(t):
+    """E4 -- triangle-based arrow direction detector."""
+    import numpy as np
+    from pipeline_v2.vision.diagram_extract import _detect_arrowhead
+    # Build a mask with a triangle on the right end:
+    #   line stem on the left half, triangle bulge on the right end
+    mask = np.zeros((40, 80), dtype=bool)
+    # Stem
+    mask[20, 10:60] = True
+    # Triangle (head) on right end
+    for dy in range(-6, 7):
+        width = max(0, 6 - abs(dy))
+        mask[20 + dy, 60:60 + width] = True
+    ep1 = (10, 20)  # left = tail
+    ep2 = (65, 20)  # right = head
+    direction = _detect_arrowhead(mask, ep1, ep2, radius=14)
+    t.check(direction == 2, f"arrowhead at ep2 detected: got {direction}")
+
+
 def main():
     t = _T()
     print("=== refextract_bridge ==="); test_refextract_bridge(t)
@@ -350,6 +500,14 @@ def main():
     print("=== diagram extract ==="); test_diagram_extract(t)
     print("=== diagram shapes ==="); test_diagram_shape_classifier(t)
     print("=== cascading extractor ==="); test_cascading_extractor(t)
+    print("=== figure refs (E6) ==="); test_figure_refs(t)
+    print("=== dashboard (E7) ==="); test_dashboard(t)
+    print("=== arrow direction (E4) ==="); test_arrow_direction_e4(t)
+    print("=== chart extractors (E8) ==="); test_chart_extractors_synthetic(t)
+    print("=== reading order (E1) ==="); test_reading_order_e1(t)
+    print("=== caption pairing (E3) ==="); test_caption_pairing_e3(t)
+    print("=== pix2tex (E5) lazy ==="); test_pix2tex_lazy(t)
+    print("=== deepseek-ocr (E2) lazy ==="); test_deepseek_lazy(t)
     return t.report()
 
 
