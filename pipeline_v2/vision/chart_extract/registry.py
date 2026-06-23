@@ -1,17 +1,27 @@
 """FigureKind -> ChartExtractor.
 
-By default chart kinds dispatch to the geometric extractors wrapped
-in `MultiPanelExtractor`. If you want DePlot as a backup / vote
-partner, build a cascade explicitly:
+The default registry cascades the fast geometric extractors with
+**DePlot as a fallback** (when transformers is available and the
+google/deplot weights are downloaded). This means:
 
-    from pipeline_v2.vision.chart_extract import (
-        build_chart_extractor, DeplotExtractor)
+  * `bar_chart` → SimpleBars (fast, ~0.5s) → DePlot fallback if PARTIAL
+  * `stacked_bar_chart` / `box_plot` / `pie_chart` / `scatter_plot` /
+    `line_plot` → stub (returns UNSUPPORTED) → DePlot fallback
+    (40-110s per figure)
 
-    bar = build_chart_extractor(FigureKind.BAR_CHART,
-                                  with_deplot=True,
-                                  deplot_shared=DeplotExtractor())
+DePlot is opt-out via the `PDF2MD_DISABLE_DEPLOT=1` environment
+variable in case you really want geometric-only (e.g. on a host
+that can't afford the 1.5GB RAM during inference). Without the
+fallback, all the non-bar chart kinds return UNSUPPORTED and the
+runner falls back to Gemma 4 (16+ minutes per figure -- much
+slower than DePlot).
+
+DePlot is also lazy-loaded: the model only loads when first
+called, so importing this module is cheap even with the cascade
+enabled.
 """
 from __future__ import annotations
+import os
 from typing import Dict, Optional
 
 from ..base import FigureKind
@@ -24,24 +34,30 @@ from .stubs import (
 from .multipanel import MultiPanelExtractor
 from .multi_extractor import CascadingExtractor
 
+# DePlot is optional; we lazy-load and gracefully degrade if
+# unavailable. Set PDF2MD_DISABLE_DEPLOT=1 to skip even checking.
+_DISABLE_DEPLOT = os.environ.get("PDF2MD_DISABLE_DEPLOT", "0") == "1"
 try:
-    from .deplot import DeplotExtractor
-    _DEPLOT_AVAILABLE = True
+    if not _DISABLE_DEPLOT:
+        from .deplot_subprocess import DeplotSubprocessExtractor
+        _DEPLOT_AVAILABLE = True
+    else:
+        _DEPLOT_AVAILABLE = False
 except ImportError:
     _DEPLOT_AVAILABLE = False
 
 
 def build_chart_extractor(kind: FigureKind, *,
-                            with_deplot: bool = False,
-                            deplot_shared=None) -> Optional[ChartExtractor]:
+                            with_deplot: Optional[bool] = None,
+                            ) -> Optional[ChartExtractor]:
     """Build the ChartExtractor for a given FigureKind.
 
-    If `with_deplot` is True and `deplot_shared` is provided (a single
-    DeplotExtractor instance to avoid reloading the model), the geometric
-    extractor is wrapped in a cascade that falls through to DePlot when
-    the geometric pass returns low confidence.
+    ``with_deplot``:
+      * ``None`` (default) → use DePlot if available
+      * ``True``           → require DePlot (raises if unavailable)
+      * ``False``          → never use DePlot
     """
-    base = {
+    geometric = {
         FigureKind.BAR_CHART:         SimpleBarsExtractor(),
         FigureKind.STACKED_BAR_CHART: StackedBarsExtractor(),
         FigureKind.BOX_PLOT:          BoxPlotExtractor(),
@@ -49,13 +65,26 @@ def build_chart_extractor(kind: FigureKind, *,
         FigureKind.SCATTER_PLOT:      ScatterExtractor(),
         FigureKind.LINE_PLOT:         LinePlotExtractor(),
     }.get(kind)
-    if base is None:
+    if geometric is None:
         return None
-    if with_deplot and _DEPLOT_AVAILABLE:
-        deplot = deplot_shared if deplot_shared is not None \
-            else DeplotExtractor()
-        base = CascadingExtractor([base, deplot])
-    return MultiPanelExtractor(base)
+
+    use_deplot = with_deplot
+    if use_deplot is None:
+        use_deplot = _DEPLOT_AVAILABLE
+    if use_deplot and not _DEPLOT_AVAILABLE:
+        if with_deplot is True:
+            raise RuntimeError(
+                "DePlot requested but not importable. Install transformers "
+                "and download google/deplot, OR pass with_deplot=False.")
+        use_deplot = False
+    if use_deplot:
+        # Subprocess-isolated DePlot for memory safety on 2GB hosts.
+        # The cascade only invokes DePlot when the geometric extractor
+        # returns < OK confidence, so plain bar charts cost 0 model loads.
+        deplot = DeplotSubprocessExtractor(
+            per_image_timeout=300, max_image_dim=320, max_new_tokens=200)
+        geometric = CascadingExtractor([geometric, deplot])
+    return MultiPanelExtractor(geometric)
 
 
 _REGISTRY: Dict[FigureKind, ChartExtractor] = {

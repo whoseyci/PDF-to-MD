@@ -62,6 +62,7 @@ class DiagramNode:
     id: str                    # "A", "B", "C", ...
     label: str
     bbox: Tuple[int, int, int, int]   # (x, y, w, h)
+    shape: str = "rect"        # rect | rounded | circle | diamond | parallelogram
 
 
 @dataclass
@@ -136,14 +137,20 @@ def extract_diagram(image_path: Path,
             result.elapsed_seconds = round(time.time() - t0, 3)
             return result
 
-        # Step 2: OCR each node's interior.
+        # Step 2: OCR each node's interior + classify shape.
         labeled: List[DiagramNode] = []
-        for i, bbox in enumerate(nodes):
-            text = _ocr_inside(bgr, bbox)
+        for i, item in enumerate(nodes):
+            if isinstance(item, tuple) and len(item) == 2 \
+                    and not isinstance(item[0], int):
+                bbox, shape = item
+            else:
+                bbox, shape = item, "rect"
+            text = _ocr_inside(bgr, bbox, shape=shape)
             if not text:
                 text = f"Node {i + 1}"
             ident = _next_ident(i)
-            labeled.append(DiagramNode(id=ident, label=text, bbox=bbox))
+            labeled.append(DiagramNode(id=ident, label=text,
+                                          bbox=bbox, shape=shape))
 
         # Step 3: edge skeleton -- dark pixels NOT inside any node bbox.
         edge_mask = _build_edge_mask(gray, labeled)
@@ -181,30 +188,35 @@ def extract_diagram(image_path: Path,
 
 def _detect_node_bboxes(bgr, gray, *, min_size: int,
                           max_size_w: int, max_size_h: int
-                          ) -> List[Tuple[int, int, int, int]]:
-    """Find rectangular / filled-coloured shape bboxes."""
+                          ) -> List[Tuple[Tuple[int, int, int, int], str]]:
+    """Find shape bboxes + classify their shape.
+
+    Returns list of ((x, y, w, h), shape) where shape is one of:
+       rect | rounded | circle | diamond | parallelogram
+    """
     import cv2
     H, W = gray.shape
 
-    # Path A: filled-coloured regions. Lower saturation threshold to
-    # catch pastel fills like #dbe9f4 (sat ~26 in HSV).
+    # Path A: filled-coloured regions (HSV sat > 15 catches pastel fills).
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
     sat = (hsv[:, :, 1] > 15).astype(np.uint8) * 255
     sat = cv2.morphologyEx(sat, cv2.MORPH_CLOSE,
         cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5)))
-    candidates: List[Tuple[int, int, int, int]] = []
-    n, _, stats, _ = cv2.connectedComponentsWithStats(sat, connectivity=8)
-    for i in range(1, n):
+    candidates: List[Tuple[Tuple[int, int, int, int], str]] = []
+    n_cc, labels_cc, stats, _ = cv2.connectedComponentsWithStats(
+        sat, connectivity=8)
+    for i in range(1, n_cc):
         x, y, w, h, area = stats[i]
         if w < min_size or h < min_size: continue
         if w > max_size_w or h > max_size_h: continue
         if min(w, h) / max(w, h) < 0.1: continue
         fill = area / float(w * h)
-        if fill < 0.5: continue
-        candidates.append((int(x), int(y), int(w), int(h)))
+        if fill < 0.4: continue   # accept lower fill for diamonds/ellipses
+        # Classify the shape from the component's contour
+        shape = _classify_shape(labels_cc, i, x, y, w, h, area)
+        candidates.append(((int(x), int(y), int(w), int(h)), shape))
 
-    # Path B: outlined-only rectangles (no colour fill, just dark border).
-    # Find 4-vertex polygons in the binary edge map.
+    # Path B: outlined-only shapes (no colour fill, dark border only).
     edges = cv2.Canny(gray, 50, 150)
     edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE,
         cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
@@ -213,21 +225,115 @@ def _detect_node_bboxes(bgr, gray, *, min_size: int,
     for cnt in contours:
         peri = cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, 0.04 * peri, True)
-        if len(approx) not in (4, 5, 6): continue   # rectangles, rounded rects
+        # Accept 3-12 vertex polygons (triangle through dodecagon)
+        if len(approx) < 3 or len(approx) > 12: continue
         x, y, w, h = cv2.boundingRect(approx)
         if w < min_size or h < min_size: continue
         if w > max_size_w or h > max_size_h: continue
         if min(w, h) / max(w, h) < 0.15: continue
-        # Skip if already covered by a saturated-colour candidate
-        if any(_bbox_iou((x, y, w, h), c) > 0.5 for c in candidates):
+        if any(_bbox_iou((x, y, w, h), c[0]) > 0.5 for c in candidates):
             continue
-        candidates.append((int(x), int(y), int(w), int(h)))
+        shape = _classify_shape_from_contour(cnt, approx, x, y, w, h)
+        candidates.append(((int(x), int(y), int(w), int(h)), shape))
 
-    # Dedupe overlapping bboxes via NMS.
-    candidates = _nms_bboxes(candidates, iou_thresh=0.5)
-    # Sort top-to-bottom, then left-to-right (reading order).
-    candidates.sort(key=lambda b: (b[1] // 30, b[0]))
+    # Dedupe overlapping bboxes (keep larger when tied)
+    candidates = _nms_shape_bboxes(candidates, iou_thresh=0.5)
+    # Sort top-to-bottom then left-to-right
+    candidates.sort(key=lambda c: (c[0][1] // 30, c[0][0]))
     return candidates
+
+
+# --------------------------------------------------------------------
+# Shape classifier
+# --------------------------------------------------------------------
+
+def _classify_shape(labels_cc, comp_id: int, x: int, y: int,
+                      w: int, h: int, area: int) -> str:
+    """Classify a connected component by its bounding-box fill ratio
+    and contour vertex count.
+
+    Heuristics:
+       fill > 0.92         → rect or rounded
+       0.70 < fill ≤ 0.92  → rounded (corners shaved off → less fill)
+       0.50 < fill ≤ 0.70  → diamond (fills ~50% of bbox)
+       fill ≤ 0.55 + circular → circle / ellipse
+    """
+    import cv2
+    # Extract the contour of this single component for vertex analysis
+    mask = (labels_cc[y:y + h, x:x + w] == comp_id).astype(np.uint8) * 255
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+                                     cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return "rect"
+    cnt = max(contours, key=cv2.contourArea)
+    peri = cv2.arcLength(cnt, True)
+    if peri == 0:
+        return "rect"
+    fill = area / float(w * h)
+    # Circularity: 4*pi*area / peri^2 is 1.0 for a perfect circle,
+    # ~0.785 for a square, ~0.5 for an elongated ellipse.
+    circularity = 4 * np.pi * area / (peri * peri)
+    approx = cv2.approxPolyDP(cnt, 0.04 * peri, True)
+    n_vert = len(approx)
+    return _shape_from_features(fill, circularity, n_vert, w, h)
+
+
+def _classify_shape_from_contour(cnt, approx, x: int, y: int,
+                                    w: int, h: int) -> str:
+    """Same as `_classify_shape` but starting from an outline contour
+    (path B detection)."""
+    import cv2
+    area = cv2.contourArea(cnt)
+    if area <= 0:
+        return "rect"
+    peri = cv2.arcLength(cnt, True)
+    if peri == 0:
+        return "rect"
+    fill = area / float(w * h)
+    circularity = 4 * np.pi * area / (peri * peri)
+    n_vert = len(approx)
+    return _shape_from_features(fill, circularity, n_vert, w, h)
+
+
+def _shape_from_features(fill: float, circularity: float,
+                            n_vert: int, w: int, h: int) -> str:
+    """Decision table from (bbox fill ratio, circularity, polygon vertex count).
+
+    Reference numbers:
+       Circle:        fill ~0.78, circularity ~1.0, n_vert >= 6
+       Ellipse:       fill ~0.78, circularity 0.6-0.9, n_vert >= 5
+       Rect:          fill ~1.0,  circularity ~0.78, n_vert = 4
+       Rounded rect:  fill ~0.95, circularity ~0.85, n_vert 4-8
+       Diamond:       fill ~0.50, circularity ~0.78, n_vert = 4
+       Parallelogram: fill ~0.85, circularity ~0.78, n_vert = 4
+    """
+    # Very circular → circle (or stadium for elongated)
+    if circularity > 0.85 and n_vert >= 5:
+        return "circle"
+    # Diamond: 4 vertices and bbox fill near 50%
+    if n_vert == 4 and fill < 0.65:
+        return "diamond"
+    # Parallelogram-ish: 4 vertices, oblique fill drops below ~0.92
+    # NOTE: telling parallelograms from rounded rects from a bbox alone
+    # is unreliable; we conservatively call this "rounded".
+    if n_vert == 4 and 0.65 <= fill < 0.92:
+        return "rounded"
+    # Rounded rect: fewer than 4 *sharp* corners → rounded vertex count
+    # often jumps to 6-12 when corners get fillets
+    if n_vert >= 5 and fill > 0.78:
+        return "rounded"
+    # Default: rectangle
+    return "rect"
+
+
+def _nms_shape_bboxes(items, iou_thresh: float = 0.5):
+    """NMS over (bbox, shape) tuples; prefer larger area."""
+    sorted_i = sorted(items, key=lambda it: -it[0][2] * it[0][3])
+    keep = []
+    for it in sorted_i:
+        if not any(_bbox_iou(it[0], k[0]) >= iou_thresh for k in keep):
+            keep.append(it)
+    return keep
 
 
 def _bbox_iou(a: Tuple[int, int, int, int],
@@ -258,19 +364,41 @@ def _nms_bboxes(bboxes, iou_thresh: float = 0.5):
 # Step 2: OCR inside each node bbox
 # --------------------------------------------------------------------
 
-def _ocr_inside(bgr, bbox) -> str:
-    """Run tesseract on a node's interior; return the cleaned text."""
+def _ocr_inside(bgr, bbox, shape: str = "rect") -> str:
+    """Run tesseract on a node's interior; return the cleaned text.
+
+    Shape-aware inset: diamonds and circles need MUCH bigger insets
+    because OCR over the antialiased curved border produces phantom
+    characters. We use the inscribed-rectangle area for non-rect shapes.
+    """
     try:
         import pytesseract
         from PIL import Image
     except ImportError:
         return ""
     x, y, w, h = bbox
-    # Inset by a few pixels to skip the box border (anti-aliased pixels
-    # near the border tend to produce phantom characters in OCR).
-    pad = max(3, min(w, h) // 12)
-    x0, y0 = x + pad, y + pad
-    x1, y1 = x + w - pad, y + h - pad
+    if shape == "diamond":
+        # A diamond's inscribed rectangle is much smaller than its bbox.
+        # The inscribed rectangle is the largest axis-aligned rect that
+        # fits inside the diamond: width = w*0.5, height = h*0.5.
+        new_w, new_h = int(w * 0.55), int(h * 0.55)
+        x0 = x + (w - new_w) // 2
+        y0 = y + (h - new_h) // 2
+        x1 = x0 + new_w; y1 = y0 + new_h
+    elif shape == "circle":
+        # Circle's inscribed rect: ~70% width/height of bbox.
+        new_w, new_h = int(w * 0.7), int(h * 0.7)
+        x0 = x + (w - new_w) // 2
+        y0 = y + (h - new_h) // 2
+        x1 = x0 + new_w; y1 = y0 + new_h
+    elif shape in ("rounded", "parallelogram"):
+        pad = max(5, min(w, h) // 8)
+        x0, y0 = x + pad, y + pad
+        x1, y1 = x + w - pad, y + h - pad
+    else:
+        pad = max(3, min(w, h) // 12)
+        x0, y0 = x + pad, y + pad
+        x1, y1 = x + w - pad, y + h - pad
     if x1 <= x0 or y1 <= y0:
         return ""
     crop = bgr[y0:y1, x0:x1]
@@ -286,10 +414,26 @@ def _ocr_inside(bgr, bbox) -> str:
         text = pytesseract.image_to_string(img, config="--psm 6")
     except Exception:
         return ""
-    # Clean whitespace and discard noise tokens
+    # Clean whitespace
     text = " ".join(text.split())
-    # Strip leading/trailing punctuation noise
-    text = text.strip("., :;|/\\-_=")
+    # Drop "garbage" tokens that are just punctuation or single non-letter
+    # characters (a common output of OCR over an antialiased border).
+    cleaned = []
+    for tok in text.split():
+        # Keep tokens with at least one alphabetic character OR a
+        # standalone numeric (e.g. "v2", "3D").
+        has_alpha = any(c.isalpha() for c in tok)
+        has_digit = any(c.isdigit() for c in tok)
+        if not (has_alpha or has_digit):
+            continue
+        # Drop single-character tokens that are all-digits OR all-punct
+        if len(tok) <= 1 and not tok.isalpha():
+            continue
+        # Strip leading/trailing punctuation
+        tok = tok.strip("., :;|/\\-_=()[]{}*&%$#@!?\"'")
+        if tok:
+            cleaned.append(tok)
+    text = " ".join(cleaned).strip("., :;|/\\-_=")
     return text
 
 
@@ -462,12 +606,33 @@ def _detect_arrowhead(mask: np.ndarray, ep1: Tuple[int, int],
 
 def _to_mermaid(nodes: List[DiagramNode],
                  edges: List[DiagramEdge]) -> str:
-    """Build a fenced ```mermaid block."""
+    """Build a fenced ```mermaid block, using shape-appropriate syntax.
+
+    Mermaid shape syntax cheat sheet:
+       rect           A[label]
+       rounded        A(label)
+       circle         A((label))
+       diamond        A{label}
+       parallelogram  A[/label/]
+    """
     lines = ["```mermaid", "flowchart LR"]
     for n in nodes:
-        # Escape closing brackets in labels
-        safe = n.label.replace("]", " ").replace("[", " ").strip() or n.id
-        lines.append(f"    {n.id}[{safe}]")
+        # Escape characters that would break the bracket syntax. We
+        # replace `[` `]` `(` `)` `{` `}` `|` with spaces, then trim.
+        safe = n.label
+        for ch in "[](){}|":
+            safe = safe.replace(ch, " ")
+        safe = " ".join(safe.split()) or n.id
+        if n.shape == "diamond":
+            lines.append(f"    {n.id}{{{safe}}}")
+        elif n.shape == "circle":
+            lines.append(f"    {n.id}(({safe}))")
+        elif n.shape == "rounded":
+            lines.append(f"    {n.id}({safe})")
+        elif n.shape == "parallelogram":
+            lines.append(f"    {n.id}[/{safe}/]")
+        else:
+            lines.append(f"    {n.id}[{safe}]")
     for e in edges:
         arrow = "-->" if e.directed else "---"
         if e.label:

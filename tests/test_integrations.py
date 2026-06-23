@@ -202,7 +202,6 @@ def test_diagram_extract(t):
         t.check(len(r.nodes) == 5,
                 f"detects 5 nodes (got {len(r.nodes)})")
         labels = sorted(n.label.lower() for n in r.nodes)
-        # At least the 5 distinct words should appear in the extracted labels
         for keyword in ("attitude", "subnorm", "pbc", "intention", "behaviour"):
             t.check(any(keyword in lab for lab in labels),
                     f"detects label containing {keyword!r} (got {labels})")
@@ -212,6 +211,90 @@ def test_diagram_extract(t):
                 f"emits valid mermaid block")
         print(f"  diagram: {len(r.nodes)} nodes, {len(r.edges)} edges, "
               f"conf={r.confidence}")
+
+
+def test_diagram_shape_classifier(t):
+    """Shape detection: rect / rounded / diamond / circle on a mixed
+    diagram. Tests the new shape-aware extractor."""
+    import tempfile
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import FancyBboxPatch, Polygon, Circle
+        import numpy as np
+    except ImportError:
+        print("  (matplotlib not installed; shape test skipped)")
+        return
+
+    from pipeline_v2.vision.diagram_extract import extract_diagram
+    with tempfile.TemporaryDirectory() as td:
+        img = Path(td) / "shapes.png"
+        fig, ax = plt.subplots(figsize=(12, 5), dpi=120)
+        ax.set_xlim(0, 12); ax.set_ylim(0, 5); ax.axis('off')
+
+        # Diamond
+        diamond = np.array([[3.8, 2.8], [4.6, 3.6], [5.4, 2.8], [4.6, 2.0]])
+        ax.add_patch(Polygon(diamond, linewidth=2, edgecolor="black",
+                                facecolor="#f9e1c8"))
+        ax.text(4.6, 2.8, "Choice", ha="center", va="center",
+                fontsize=12, fontweight="bold")
+
+        # Rect
+        ax.add_patch(FancyBboxPatch((6.5, 3.8), 2.0, 0.9,
+            boxstyle="square,pad=0.05", linewidth=2,
+            edgecolor="black", facecolor="#dbe9f4"))
+        ax.text(7.5, 4.25, "Process", ha="center", va="center",
+                fontsize=12, fontweight="bold")
+
+        # Circle
+        ax.add_patch(Circle((10.5, 2.8), 0.7, linewidth=2,
+                                edgecolor="black", facecolor="#fdd"))
+        ax.text(10.5, 2.8, "Done", ha="center", va="center",
+                fontsize=12, fontweight="bold")
+
+        # An arrow between them so we get edges too
+        def arrow(x1, y1, x2, y2):
+            ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                         arrowprops=dict(arrowstyle="->", lw=2, color="black"))
+        arrow(5.4, 2.8, 6.5, 4.0)
+        arrow(8.5, 4.3, 9.9, 2.8)
+
+        fig.tight_layout(); fig.savefig(img); plt.close(fig)
+
+        r = extract_diagram(img)
+        t.check(r.status in ("ok", "partial"),
+                f"shape diagram: status={r.status}")
+
+        # Find the node containing each keyword and check its shape.
+        def find(keyword):
+            for n in r.nodes:
+                if keyword in n.label.lower():
+                    return n
+            return None
+
+        choice = find("choice")
+        proc = find("process")
+        done = find("done")
+        # OCR for short words inside diamonds/circles is unreliable;
+        # only require that we detect at least 2 of the 3 expected shapes.
+        observed_shapes = {n.shape for n in r.nodes}
+        t.check("diamond" in observed_shapes or
+                  (choice and choice.shape == "diamond"),
+                f"detects diamond among shapes (saw {observed_shapes})")
+        t.check("circle" in observed_shapes or
+                  (done and done.shape == "circle"),
+                f"detects circle among shapes (saw {observed_shapes})")
+        # The rectangle is the easiest to confirm
+        t.check("rect" in observed_shapes,
+                f"detects rect among shapes (saw {observed_shapes})")
+        # Validate the mermaid syntax: should contain at least
+        # one of `{...}` (diamond) or `((...))` (circle)
+        mermaid = r.mermaid or ""
+        t.check("{" in mermaid or "((" in mermaid,
+                f"mermaid contains diamond / circle syntax")
+        print(f"  shape diagram: shapes detected = "
+              f"{[(n.id, n.shape) for n in r.nodes]}")
 
 
 def test_cascading_extractor(t):
@@ -265,6 +348,7 @@ def main():
     print("=== llm_boost ==="); test_llm_boost(t)
     print("=== deplot extractor ==="); test_deplot_extractor_lazy(t)
     print("=== diagram extract ==="); test_diagram_extract(t)
+    print("=== diagram shapes ==="); test_diagram_shape_classifier(t)
     print("=== cascading extractor ==="); test_cascading_extractor(t)
     return t.report()
 

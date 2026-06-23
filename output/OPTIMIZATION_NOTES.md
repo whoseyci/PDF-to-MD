@@ -641,6 +641,64 @@ a link and chopped the trailing `]`). Fixed by stashing every
 `![…](…)` to an opaque placeholder before linking, then restoring
 them at the end.
 
+## o) DePlot default-on cascade + shape-aware diagram extractor
+
+User asked for (a) DePlot as default and (b) shape-aware diagrams.
+
+### (a) DePlot wired in as default cascade
+
+`pipeline_v2/vision/chart_extract/registry.py` now wraps each
+geometric extractor in `CascadingExtractor([geometric,
+DeplotSubprocessExtractor])`. The cascade short-circuits on a
+high-confidence geometric hit (typical bar charts: ~0.5 s, never
+loads DePlot), and only invokes DePlot when geometric returns
+PARTIAL / UNSUPPORTED / low-conf. For stacked/scatter/line/pie
+where we have stubs, DePlot now runs as the real extractor.
+
+Opt-out: `PDF2MD_DISABLE_DEPLOT=1` env var.
+
+Registry advertises this:
+```
+bar_chart         -> multipanel(cascade(simple_bars/v1+deplot-subprocess/v1))
+stacked_bar_chart -> multipanel(cascade(stacked_bars/stub+deplot-subprocess/v1))
+box_plot          -> multipanel(cascade(box_plot/stub+deplot-subprocess/v1))
+pie_chart         -> multipanel(cascade(pie_chart/stub+deplot-subprocess/v1))
+scatter_plot      -> multipanel(cascade(scatter/stub+deplot-subprocess/v1))
+line_plot         -> multipanel(cascade(line_plot/stub+deplot-subprocess/v1))
+```
+
+### (b) Shape-aware diagram → Mermaid
+
+`pipeline_v2/vision/diagram_extract.py` now classifies each
+detected node into one of:
+  * `rect`          → `A[label]`
+  * `rounded`       → `A(label)`
+  * `circle`        → `A((label))`
+  * `diamond`       → `A{label}`
+  * `parallelogram` → `A[/label/]`
+
+Shape classifier uses (bbox fill ratio, contour circularity,
+polygon vertex count) as features. Decision rules:
+
+| Shape    | Fill   | Circularity | Vertices |
+|----------|--------|-------------|----------|
+| Circle   | ~0.78  | > 0.85      | ≥ 5      |
+| Diamond  | ~0.50  | ~0.78       | 4        |
+| Rounded  | ~0.85  | ~0.85       | 4-8      |
+| Rect     | ~1.0   | ~0.78       | 4        |
+
+Also added **shape-aware OCR**: the crop inset for diamonds is
+55% of bbox (inscribed rect), for circles 70% — much higher than
+the default 8% inset for rects, because antialiased curved borders
+generate phantom OCR characters. After fix, "OK?" → "OK" cleanly
+from a diamond that previously produced "& VOY".
+
+Tested on a synthetic mixed-shape diagram (1 diamond + 1 circle +
+2 rects + 5 arrows): all 5 shapes detected correctly, all 5 arrows
+captured, OCR clean on all nodes.
+
+48/48 tests now passing.
+
 ## n) DePlot vs SimpleBars benchmark + classical diagram → mermaid
 
 ### Q: Is DePlot better than SimpleBars?

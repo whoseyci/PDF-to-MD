@@ -86,15 +86,17 @@ several state-of-the-art PDF→MD projects:
     extraction. Real markdown tables with real numbers, no hallucination.
     Bench: 0.5 s/chart, mean abs err ≤ 0.1 on simple bar charts.
   * `chart_extract/deplot.py` -- Google's `google/deplot` specialist
-    model as fallback for chart kinds we don't cover geometrically
-    (stacked / line / scatter / pie). 40-110 s/figure on CPU, peak
-    1.45 GB RAM. Use `CascadingExtractor([SimpleBars(), DeplotExtractor()])`
-    to chain them.
-  * `diagram_extract.py` -- **classical (non-LLM)** diagram → Mermaid
-    extractor for clean machine-rendered conceptual diagrams (TPB,
-    causal loops, decision trees, draw.io exports). 0.8 s/figure,
-    extracted 5/5 nodes + 4/4 edges on a TPB model. Tries this
-    FIRST in the runner before falling back to the VLM.
+    model **now default-enabled** as a fallback cascade for all chart
+    kinds. Geometric extractor tries first (~0.5 s); DePlot only runs
+    when geometric returns PARTIAL or UNSUPPORTED (40-110 s/figure on
+    CPU, peak 1.45 GB RAM). Disable by setting `PDF2MD_DISABLE_DEPLOT=1`.
+  * `diagram_extract.py` -- **classical (non-LLM) shape-aware** diagram
+    → Mermaid extractor for clean machine-rendered conceptual diagrams
+    (TPB, causal loops, decision trees, draw.io exports). 0.8 s/figure.
+    Classifies each node as `rect` / `rounded` / `circle` / `diamond` /
+    `parallelogram` and emits the correct Mermaid shape syntax
+    (`A[label]`, `A((label))`, `A{label}`, etc.). Tries this FIRST in
+    the runner before falling back to the VLM.
   * `mermaid_extract.py` -- VLM-based diagram → Mermaid via Gemma 4 E2B.
     Fallback for hand-drawn / irregular / overlapping diagrams that
     the classical extractor can't handle. ~16 min/figure on CPU.
