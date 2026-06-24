@@ -178,6 +178,33 @@ class StackedBarsExtractor(ChartExtractor):
             r.value_label = find_label_text(words, near=axis.axis,
                                               axis_cal=axis, image_size=(W, H),
                                               skip_first_band=False)
+            # Self-rejection: stacked bars must have >=2 series. A
+            # single-series "stack" is just a bar chart and should
+            # be handled by simple_bars.
+            if len(sorted_keys) < 2:
+                r.status = ExtractionStatus.NO_BARS
+                r.reason = (f"only {len(sorted_keys)} colour band; "
+                              "not a stacked bar chart")
+                r.elapsed_seconds = time.time() - t0; return r
+            # Self-rejection: at least one bar should be substantially
+            # taller than wide (real stacked bars are columnar). If all
+            # detected "bars" are short little strips, this is probably
+            # a scatter cluster.
+            tall_bars = 0
+            for (xa, xb) in runs:
+                # estimate strip height from per_bar_segments
+                if per_bar_segments and per_bar_segments[runs.index((xa, xb))]:
+                    seg = per_bar_segments[runs.index((xa, xb))]
+                    if seg:
+                        ys = [b - a for (a, b) in seg.values()]
+                        total_h = sum(ys)
+                        if total_h > (xb - xa) * 1.5:  # taller than wide
+                            tall_bars += 1
+            if tall_bars < max(1, len(runs) // 2):
+                r.status = ExtractionStatus.NO_BARS
+                r.reason = (f"only {tall_bars}/{len(runs)} candidate bars "
+                              f"are columnar; not a stacked bar chart")
+                r.elapsed_seconds = time.time() - t0; return r
             n_known = sum(1 for c in cat_labels if not c.startswith("Cat "))
             if n_known >= max(1, int(0.6 * len(cat_labels))) and len(matrix) >= 2:
                 r.status = ExtractionStatus.OK

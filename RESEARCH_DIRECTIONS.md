@@ -351,6 +351,7 @@ Given the cost/value tradeoffs:
 | 21   | **NEW** Caption backfill | 0.5 | Re-runs caption_pairing on source PDFs, merges results into already-converted paper.json | ✅ `pipeline_v2/caption_backfill.py`. Corpus run: **filled 98/339 (28.9%) of empty captions**, doubled distillation student win-rate (22.5% → 40.1%) |
 | 22   | **NEW** Figure-refs cross-caption + orphan rescue | 0.5 | Captions that reference other figures count as mentions; orphaned body mentions rescue via fig-id mapping | ✅ `pipeline_v2/figure_refs.py`. Corpus run: figs with mentions 33.8% → **37.0%**, +17 cross-caption mentions |
 | 23   | **NEW** Round 3 specialist polish | 0.75 | Tick-mark requirement for axis detection, multipanel detection, decorative specialist, equation routing | ✅ in `mixture_classifier.py` + `reflective_runner.py`. Pie no longer flagged as having chart axes; line/scatter/box/stacked-bar all correctly detected. Decorative specialist short-circuits banner figures. Tests: 133 → 142 passing |
+| 24   | **NEW** Parallel extractor + structural credibility | 1.5 | Run all specialists, arbitrate by extracted-data plausibility (medians vary, wedges sum to 100, ≥3 bars), self-rejection per kind | ✅ `pipeline_v2/vision/chart_extract/parallel_extractor.py`. Reliability **76.5% → 94.1%** on no-caption stress bench. 8/9 kinds at 100%. Smart dispatcher (`run_smart_extraction`) auto-picks reflective when caption decisive, parallel otherwise. Tests: 142 → 151 passing |
 
 ### What's still loose
 

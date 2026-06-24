@@ -1,0 +1,1557 @@
+{
+  "n": 81,
+  "by_caption_condition": {
+    "rich": {
+      "n": 27,
+      "kw": 21,
+      "mix": 24,
+      "hyb": 24
+    },
+    "minimal": {
+      "n": 27,
+      "kw": 0,
+      "mix": 10,
+      "hyb": 10
+    },
+    "empty": {
+      "n": 27,
+      "kw": 0,
+      "mix": 10,
+      "hyb": 10
+    }
+  },
+  "by_kind": {
+    "bar_chart": {
+      "n": 18,
+      "kw": 6,
+      "mix": 6,
+      "hyb": 6
+    },
+    "stacked_bar_chart": {
+      "n": 6,
+      "kw": 2,
+      "mix": 2,
+      "hyb": 2
+    },
+    "pie_chart": {
+      "n": 12,
+      "kw": 4,
+      "mix": 10,
+      "hyb": 10
+    },
+    "line_plot": {
+      "n": 12,
+      "kw": 4,
+      "mix": 12,
+      "hyb": 12
+    },
+    "scatter_plot": {
+      "n": 9,
+      "kw": 0,
+      "mix": 0,
+      "hyb": 0
+    },
+    "box_plot": {
+      "n": 9,
+      "kw": 3,
+      "mix": 3,
+      "hyb": 3
+    },
+    "flow_diagram": {
+      "n": 6,
+      "kw": 2,
+      "mix": 2,
+      "hyb": 2
+    },
+    "decorative": {
+      "n": 6,
+      "kw": 0,
+      "mix": 6,
+      "hyb": 6
+    },
+    "equation": {
+      "n": 3,
+      "kw": 0,
+      "mix": 3,
+      "hyb": 3
+    }
+  },
+  "confusion_hybrid": {
+    "bar_chart->bar_chart": 6,
+    "stacked_bar_chart->stacked_bar_chart": 2,
+    "pie_chart->pie_chart": 10,
+    "line_plot->line_plot": 12,
+    "scatter_plot->table_as_image": 3,
+    "scatter_plot->box_plot": 3,
+    "scatter_plot->line_plot": 3,
+    "box_plot->box_plot": 3,
+    "flow_diagram->flow_diagram": 2,
+    "decorative->decorative": 6,
+    "equation->equation": 3,
+    "bar_chart->line_plot": 12,
+    "stacked_bar_chart->line_plot": 4,
+    "pie_chart->line_plot": 2,
+    "box_plot->line_plot": 6,
+    "flow_diagram->line_plot": 4
+  },
+  "rows": [
+    {
+      "truth": "bar_chart",
+      "variant": "clean_0",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": true,
+      "mix": "bar_chart",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "bar_chart",
+      "hyb_correct": true,
+      "ocr_len": 6,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.4076,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "clean_1",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": true,
+      "mix": "bar_chart",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "bar_chart",
+      "hyb_correct": true,
+      "ocr_len": 13,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2718,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "clean_2",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": true,
+      "mix": "bar_chart",
+      "mix_conf": 0.72,
+      "mix_correct": true,
+      "hyb": "bar_chart",
+      "hyb_correct": true,
+      "ocr_len": 47,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2568,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "grayscale",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": true,
+      "mix": "bar_chart",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "bar_chart",
+      "hyb_correct": true,
+      "ocr_len": 37,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2623,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "low_dpi",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": true,
+      "mix": "bar_chart",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "bar_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1198,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "legend",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": true,
+      "mix": "bar_chart",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "bar_chart",
+      "hyb_correct": true,
+      "ocr_len": 51,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2696,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "stacked_bar_chart",
+      "variant": "clean_0",
+      "caption_cond": "rich",
+      "kw": "stacked_bar_chart",
+      "kw_correct": true,
+      "mix": "stacked_bar_chart",
+      "mix_conf": 1.0,
+      "mix_correct": true,
+      "hyb": "stacked_bar_chart",
+      "hyb_correct": true,
+      "ocr_len": 33,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2488,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "stacked_bar_chart",
+      "variant": "clean_1",
+      "caption_cond": "rich",
+      "kw": "stacked_bar_chart",
+      "kw_correct": true,
+      "mix": "stacked_bar_chart",
+      "mix_conf": 1.0,
+      "mix_correct": true,
+      "hyb": "stacked_bar_chart",
+      "hyb_correct": true,
+      "ocr_len": 33,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2284,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "clean_0",
+      "caption_cond": "rich",
+      "kw": "pie_chart",
+      "kw_correct": true,
+      "mix": "pie_chart",
+      "mix_conf": 0.783,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1233,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "clean_1",
+      "caption_cond": "rich",
+      "kw": "pie_chart",
+      "kw_correct": true,
+      "mix": "pie_chart",
+      "mix_conf": 0.783,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1201,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "grayscale",
+      "caption_cond": "rich",
+      "kw": "pie_chart",
+      "kw_correct": true,
+      "mix": "pie_chart",
+      "mix_conf": 0.783,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1338,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "donut",
+      "caption_cond": "rich",
+      "kw": "pie_chart",
+      "kw_correct": true,
+      "mix": "pie_chart",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1303,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "clean_0",
+      "caption_cond": "rich",
+      "kw": "line_plot",
+      "kw_correct": true,
+      "mix": "line_plot",
+      "mix_conf": 0.841,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 12,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2457,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "clean_1",
+      "caption_cond": "rich",
+      "kw": "line_plot",
+      "kw_correct": true,
+      "mix": "line_plot",
+      "mix_conf": 0.859,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 4,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2433,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "grayscale",
+      "caption_cond": "rich",
+      "kw": "line_plot",
+      "kw_correct": true,
+      "mix": "line_plot",
+      "mix_conf": 0.852,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 62,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.8771,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "inset",
+      "caption_cond": "rich",
+      "kw": "line_plot",
+      "kw_correct": true,
+      "mix": "line_plot",
+      "mix_conf": 0.809,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 8,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.24,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "clean_0",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": false,
+      "mix": "table_as_image",
+      "mix_conf": 0.573,
+      "mix_correct": false,
+      "hyb": "table_as_image",
+      "hyb_correct": false,
+      "ocr_len": 2,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.4751,
+        "hyb": 0.5309
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "clean_1",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": false,
+      "mix": "box_plot",
+      "mix_conf": 0.55,
+      "mix_correct": false,
+      "hyb": "box_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.3261,
+        "hyb": 0.3866
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "dense",
+      "caption_cond": "rich",
+      "kw": "bar_chart",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.584,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 3,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 1.2624,
+        "hyb": 1.2143
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "clean_0",
+      "caption_cond": "rich",
+      "kw": "box_plot",
+      "kw_correct": true,
+      "mix": "box_plot",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "box_plot",
+      "hyb_correct": true,
+      "ocr_len": 13,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2644,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "clean_1",
+      "caption_cond": "rich",
+      "kw": "box_plot",
+      "kw_correct": true,
+      "mix": "box_plot",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "box_plot",
+      "hyb_correct": true,
+      "ocr_len": 16,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2237,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "grayscale",
+      "caption_cond": "rich",
+      "kw": "box_plot",
+      "kw_correct": true,
+      "mix": "box_plot",
+      "mix_conf": 0.667,
+      "mix_correct": true,
+      "hyb": "box_plot",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2292,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "flow_diagram",
+      "variant": "clean_0",
+      "caption_cond": "rich",
+      "kw": "flow_diagram",
+      "kw_correct": true,
+      "mix": "flow_diagram",
+      "mix_conf": 1.0,
+      "mix_correct": true,
+      "hyb": "flow_diagram",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2676,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "flow_diagram",
+      "variant": "clean_1",
+      "caption_cond": "rich",
+      "kw": "flow_diagram",
+      "kw_correct": true,
+      "mix": "flow_diagram",
+      "mix_conf": 1.0,
+      "mix_correct": true,
+      "hyb": "flow_diagram",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.208,
+        "hyb": 0.0
+      }
+    },
+    {
+      "truth": "decorative",
+      "variant": "banner",
+      "caption_cond": "rich",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "decorative",
+      "mix_conf": 0.7,
+      "mix_correct": true,
+      "hyb": "decorative",
+      "hyb_correct": true,
+      "ocr_len": 15,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.116,
+        "hyb": 0.1311
+      }
+    },
+    {
+      "truth": "decorative",
+      "variant": "tiny",
+      "caption_cond": "rich",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "decorative",
+      "mix_conf": 0.7,
+      "mix_correct": true,
+      "hyb": "decorative",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.0933,
+        "hyb": 0.0904
+      }
+    },
+    {
+      "truth": "equation",
+      "variant": "simple",
+      "caption_cond": "rich",
+      "kw": "scatter_plot",
+      "kw_correct": false,
+      "mix": "equation",
+      "mix_conf": 0.8,
+      "mix_correct": true,
+      "hyb": "equation",
+      "hyb_correct": true,
+      "ocr_len": 21,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1605,
+        "hyb": 0.182
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "clean_0",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.582,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 6,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.3547,
+        "hyb": 0.3028
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "clean_1",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.576,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 13,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2518,
+        "hyb": 0.2705
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "clean_2",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.592,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 47,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2906,
+        "hyb": 0.2805
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "grayscale",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.709,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 37,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2955,
+        "hyb": 0.3198
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "low_dpi",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.75,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1391,
+        "hyb": 0.1302
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "legend",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.626,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 51,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.3402,
+        "hyb": 0.3362
+      }
+    },
+    {
+      "truth": "stacked_bar_chart",
+      "variant": "clean_0",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.616,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 33,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2494,
+        "hyb": 0.2565
+      }
+    },
+    {
+      "truth": "stacked_bar_chart",
+      "variant": "clean_1",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.613,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 33,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2829,
+        "hyb": 0.2451
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "clean_0",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "pie_chart",
+      "mix_conf": 0.55,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1525,
+        "hyb": 0.2026
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "clean_1",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "pie_chart",
+      "mix_conf": 0.55,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1562,
+        "hyb": 0.16
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "grayscale",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "pie_chart",
+      "mix_conf": 0.55,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1942,
+        "hyb": 0.1566
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "donut",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.573,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1366,
+        "hyb": 0.1453
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "clean_0",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.708,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 12,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2529,
+        "hyb": 0.245
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "clean_1",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.726,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 4,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.263,
+        "hyb": 0.2613
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "grayscale",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.718,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 62,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.9339,
+        "hyb": 0.9463
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "inset",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.676,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 8,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2746,
+        "hyb": 0.2521
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "clean_0",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "table_as_image",
+      "mix_conf": 0.573,
+      "mix_correct": false,
+      "hyb": "table_as_image",
+      "hyb_correct": false,
+      "ocr_len": 2,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.5315,
+        "hyb": 0.5394
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "clean_1",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "box_plot",
+      "mix_conf": 0.55,
+      "mix_correct": false,
+      "hyb": "box_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.3158,
+        "hyb": 0.3204
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "dense",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.584,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 3,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 1.1045,
+        "hyb": 1.1811
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "clean_0",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.652,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 13,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2343,
+        "hyb": 0.2701
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "clean_1",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.653,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 16,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2485,
+        "hyb": 0.2688
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "grayscale",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.671,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2054,
+        "hyb": 0.2069
+      }
+    },
+    {
+      "truth": "flow_diagram",
+      "variant": "clean_0",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.297,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2693,
+        "hyb": 0.2928
+      }
+    },
+    {
+      "truth": "flow_diagram",
+      "variant": "clean_1",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.309,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2189,
+        "hyb": 0.2005
+      }
+    },
+    {
+      "truth": "decorative",
+      "variant": "banner",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "decorative",
+      "mix_conf": 0.7,
+      "mix_correct": true,
+      "hyb": "decorative",
+      "hyb_correct": true,
+      "ocr_len": 15,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1207,
+        "hyb": 0.1167
+      }
+    },
+    {
+      "truth": "decorative",
+      "variant": "tiny",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "decorative",
+      "mix_conf": 0.7,
+      "mix_correct": true,
+      "hyb": "decorative",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.0884,
+        "hyb": 0.0892
+      }
+    },
+    {
+      "truth": "equation",
+      "variant": "simple",
+      "caption_cond": "minimal",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "equation",
+      "mix_conf": 0.7,
+      "mix_correct": true,
+      "hyb": "equation",
+      "hyb_correct": true,
+      "ocr_len": 21,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1613,
+        "hyb": 0.189
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "clean_0",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.582,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 6,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.333,
+        "hyb": 0.3217
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "clean_1",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.576,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 13,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2628,
+        "hyb": 0.2746
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "clean_2",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.592,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 47,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.3067,
+        "hyb": 0.2727
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "grayscale",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.709,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 37,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.3289,
+        "hyb": 0.3092
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "low_dpi",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.75,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1262,
+        "hyb": 0.1283
+      }
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "legend",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.626,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 51,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.3644,
+        "hyb": 0.3154
+      }
+    },
+    {
+      "truth": "stacked_bar_chart",
+      "variant": "clean_0",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.616,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 33,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2227,
+        "hyb": 0.2394
+      }
+    },
+    {
+      "truth": "stacked_bar_chart",
+      "variant": "clean_1",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.613,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 33,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2951,
+        "hyb": 0.2971
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "clean_0",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "pie_chart",
+      "mix_conf": 0.55,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1208,
+        "hyb": 0.1206
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "clean_1",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "pie_chart",
+      "mix_conf": 0.55,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1219,
+        "hyb": 0.1391
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "grayscale",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "pie_chart",
+      "mix_conf": 0.55,
+      "mix_correct": true,
+      "hyb": "pie_chart",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1487,
+        "hyb": 0.1488
+      }
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "donut",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.573,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1331,
+        "hyb": 0.1317
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "clean_0",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.708,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 12,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2579,
+        "hyb": 0.2415
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "clean_1",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.726,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 4,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.255,
+        "hyb": 0.2525
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "grayscale",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.718,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 62,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.8531,
+        "hyb": 0.8878
+      }
+    },
+    {
+      "truth": "line_plot",
+      "variant": "inset",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.676,
+      "mix_correct": true,
+      "hyb": "line_plot",
+      "hyb_correct": true,
+      "ocr_len": 8,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2307,
+        "hyb": 0.2319
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "clean_0",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "table_as_image",
+      "mix_conf": 0.573,
+      "mix_correct": false,
+      "hyb": "table_as_image",
+      "hyb_correct": false,
+      "ocr_len": 2,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.4915,
+        "hyb": 0.5097
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "clean_1",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "box_plot",
+      "mix_conf": 0.55,
+      "mix_correct": false,
+      "hyb": "box_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.3728,
+        "hyb": 0.3107
+      }
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "dense",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.584,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 3,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 1.1468,
+        "hyb": 1.2024
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "clean_0",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.652,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 13,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.2461,
+        "hyb": 0.2424
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "clean_1",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.653,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 16,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.24,
+        "hyb": 0.26
+      }
+    },
+    {
+      "truth": "box_plot",
+      "variant": "grayscale",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.671,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2346,
+        "hyb": 0.2208
+      }
+    },
+    {
+      "truth": "flow_diagram",
+      "variant": "clean_0",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.297,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2812,
+        "hyb": 0.2683
+      }
+    },
+    {
+      "truth": "flow_diagram",
+      "variant": "clean_1",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "line_plot",
+      "mix_conf": 0.309,
+      "mix_correct": false,
+      "hyb": "line_plot",
+      "hyb_correct": false,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.2293,
+        "hyb": 0.2221
+      }
+    },
+    {
+      "truth": "decorative",
+      "variant": "banner",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "decorative",
+      "mix_conf": 0.7,
+      "mix_correct": true,
+      "hyb": "decorative",
+      "hyb_correct": true,
+      "ocr_len": 15,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.1205,
+        "hyb": 0.129
+      }
+    },
+    {
+      "truth": "decorative",
+      "variant": "tiny",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "decorative",
+      "mix_conf": 0.7,
+      "mix_correct": true,
+      "hyb": "decorative",
+      "hyb_correct": true,
+      "ocr_len": 0,
+      "elapsed": {
+        "kw": 0.0,
+        "mix": 0.0902,
+        "hyb": 0.089
+      }
+    },
+    {
+      "truth": "equation",
+      "variant": "simple",
+      "caption_cond": "empty",
+      "kw": "unknown",
+      "kw_correct": false,
+      "mix": "equation",
+      "mix_conf": 0.7,
+      "mix_correct": true,
+      "hyb": "equation",
+      "hyb_correct": true,
+      "ocr_len": 21,
+      "elapsed": {
+        "kw": 0.0001,
+        "mix": 0.1859,
+        "hyb": 0.1712
+      }
+    }
+  ]
+}

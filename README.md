@@ -253,6 +253,57 @@ Without-caption reflective extraction went from **50% → 78.6%** on
 the synthetic bench after these fixes. With-caption performance
 unchanged (already at 86%, capped by extractor quality).
 
+### Round 4 reliability push: parallel extraction (Oct 2026)
+
+User asked: can the specialists be made completely reliable without
+VLMs? Built a 81-case classifier stress bench and got an honest
+answer:
+
+| Caption condition | Keyword | Mixture | Hybrid |
+|---|---|---|---|
+| **rich** | 78% | **89%** | **89%** |
+| **minimal** ("Figure 1.") | 0% | 37% | 37% |
+| **empty** (image only) | 0% | 37% | 37% |
+
+**~37% on weak/no captions = unreliable.** Built a new
+`parallel_extractor.py` that flips the architecture: instead of
+gating on the classifier, run EVERY extractor and arbitrate by
+quality + structural credibility (medians-should-vary, whiskers-
+must-extend, wedge-percentages-should-sum-100, ≥3 bars not 1, etc).
+
+Each extractor now self-rejects properly:
+* `simple_bars` rejects if <2 bars detected
+* `pie_chart` rejects if wedges cover <80% of circle
+* `scatter_plot` rejects if markers form a line
+* `stacked_bars` rejects if <2 colour bands or non-columnar
+* `box_plot`: rejected via structural credibility (whiskers must
+  extend beyond box; medians must vary)
+
+After fixes: **94.1% (32/34) on stress bench**, **8/9 kinds at 100%**.
+Only scatter_clean_1 fails — synthetic plot with no axis labels,
+fundamentally hard.
+
+| Strategy | Rich cap | No cap | avg s |
+|---|---|---|---|
+| Reflective (kind ladder) | 88.2% | 76.5% | 1.7s |
+| Parallel + hint | 94.1% | 94.1% | 4.7s |
+| **Smart** (caption-decisive→reflective, else→parallel) | **94.1%** | **94.1%** | **4.2s** |
+
+The new production entry point is `run_smart_extraction`:
+
+```python
+from pipeline_v2.vision.chart_extract.parallel_extractor import (
+    run_smart_extraction)
+trace = run_smart_extraction(
+    image_path=Path("figure.png"),
+    caption="Figure 1. Bar chart of yield by treatment.",
+    ocr_text=None,  # auto-OCR'd internally
+)
+```
+
+See `RESEARCH_NOTES_RELIABILITY.md` for the full architectural
+writeup, including the question "can we go higher without VLMs?"
+
 ### Round 3 specialist polish (Sep 2026)
 
 Six more accuracy fixes layered on top:

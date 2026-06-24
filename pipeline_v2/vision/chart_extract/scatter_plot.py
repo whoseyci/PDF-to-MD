@@ -73,6 +73,37 @@ class ScatterExtractor(ChartExtractor):
                 r.status = ExtractionStatus.NO_BARS
                 r.reason = "too few points"
                 r.elapsed_seconds = time.time() - t0; return r
+            # Self-rejection: if markers form a continuous line
+            # (1 y-value per x-bin across most of the x-range),
+            # this is a line plot, not a scatter.
+            try:
+                xs = np.array([m[0] for m in markers])
+                ys = np.array([m[1] for m in markers])
+                x_span = float(xs.max() - xs.min())
+                if x_span > 0:
+                    n_x_bins = max(10, int(x_span / 6))
+                    bins = np.linspace(xs.min(), xs.max(), n_x_bins + 1)
+                    bin_ids = np.digitize(xs, bins)
+                    from collections import defaultdict as _dd
+                    by_bin = _dd(list)
+                    for bi, yv in zip(bin_ids, ys):
+                        by_bin[bi].append(yv)
+                    if by_bin:
+                        avg_ys_per_bin = np.mean(
+                            [len(v) for v in by_bin.values() if v])
+                        n_bins_with_markers = sum(
+                            1 for v in by_bin.values() if v)
+                        if (avg_ys_per_bin < 1.5
+                                and n_bins_with_markers > 0.7 * n_x_bins):
+                            r.status = ExtractionStatus.NO_BARS
+                            r.reason = (f"markers form a line "
+                                          f"({n_bins_with_markers}/"
+                                          f"{n_x_bins} bins, "
+                                          f"{round(avg_ys_per_bin,2)} y/bin)"
+                                          f"; not a scatter")
+                            r.elapsed_seconds = time.time() - t0; return r
+            except Exception:
+                pass
             clusters: dict = {}
             for (mx, my, k) in markers:
                 clusters.setdefault(k, []).append((mx, my))

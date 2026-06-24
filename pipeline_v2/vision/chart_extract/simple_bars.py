@@ -69,6 +69,12 @@ class SimpleBarsExtractor(ChartExtractor):
             if not bars:
                 r.status = ExtractionStatus.NO_BARS; r.reason = "no bars"
                 r.elapsed_seconds = time.time() - t0; return r
+            # Self-rejection: a real bar chart has >= 2 bars. A single
+            # "bar" is usually a scatter cluster or a misdetected blob.
+            if len(bars) < 2:
+                r.status = ExtractionStatus.NO_BARS
+                r.reason = f"only {len(bars)} bar candidate; not a bar chart"
+                r.elapsed_seconds = time.time() - t0; return r
             bars_g = [(bx + x0, by + y0, bw, bh) for (bx, by, bw, bh) in bars]
             r.bar_boxes = [[int(b[0]), int(b[1]), int(b[2]), int(b[3])] for b in bars_g]
             if orientation == "vertical":

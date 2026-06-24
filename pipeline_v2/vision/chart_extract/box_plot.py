@@ -46,17 +46,30 @@ class BoxPlotExtractor(ChartExtractor):
             ph, pw = plot.shape[:2]
             gray = cv2.cvtColor(plot, cv2.COLOR_BGR2GRAY)
             _, thr = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
-            n_comp, _, stats, _ = cv2.connectedComponentsWithStats(thr, 8)
+            # Morphological close to seal hollow rectangles
+            # (matplotlib default boxplot is a rectangular OUTLINE,
+            # not filled -- closing turns it into a solid rect).
+            thr_closed = cv2.morphologyEx(
+                thr, cv2.MORPH_CLOSE,
+                cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5)))
+            n_comp, _, stats, _ = cv2.connectedComponentsWithStats(
+                thr_closed, 8)
             box_candidates = []
             for i in range(1, n_comp):
                 x, y, w, h, area = stats[i]
-                if w < 14 or h < max(10, 0.08 * ph): continue
+                if w < 10 or h < max(10, 0.06 * ph): continue
                 if w > 0.30 * pw: continue
                 if h > 0.70 * ph: continue
                 aspect = w / max(1, h)
                 if aspect > 4 or aspect < 0.20: continue
+                # Accept hollow (>=0.10) OR filled (>=0.30) boxes.
+                # Self-rejection of false positives (bar charts,
+                # scatter clusters) is handled by the
+                # _structural_credibility check in the parallel
+                # arbitrator (medians-should-vary, whisker presence,
+                # etc) rather than by tighter component filters here.
                 fill = area / max(1, w * h)
-                if fill < 0.30: continue
+                if fill < 0.10: continue
                 box_candidates.append((x, y, w, h, area))
             box_candidates.sort(key=lambda b: b[0])
             coalesced = []
@@ -76,6 +89,7 @@ class BoxPlotExtractor(ChartExtractor):
 
             box_stats = []
             centroids = []
+            n_boxes_with_whiskers = 0
             for (bx, by, bw, bh, _area) in box_candidates:
                 q1 = float(y_px_to_val(by + bh))
                 q3 = float(y_px_to_val(by))
@@ -98,6 +112,29 @@ class BoxPlotExtractor(ChartExtractor):
                 rows_below = np.where(below.sum(axis=1) > 0)[0]
                 if len(rows_below):
                     whisker_bottom_px = by + bh + rows_below[-1]
+                # Whisker check: in a real box plot, the central
+                # vertical line (whiskers) extends ABOVE and BELOW
+                # the BOX RECTANGLE (which lives in the upper/lower
+                # portions of the candidate CC). Test:
+                #   * the candidate CC is hollow (sparse interior)
+                #     AND has dark pixels along its vertical centerline
+                #     that span MORE rows than just the rectangle
+                # Equivalent simpler test: look at the dark-pixel
+                # column at bx + bw//2 within the candidate's full
+                # CC bbox and see if the dark rows are NOT all
+                # concentrated in a single horizontal band.
+                cc_center = (bx + bw // 2, by + bh // 2)
+                center_col = thr[by:by + bh,
+                                  max(0, cc_center[0] - 1):cc_center[0] + 2]
+                if center_col.size > 0:
+                    dark_rows_in_center = (center_col.sum(axis=1) > 0).sum()
+                    # If most of the box's height has dark pixels at
+                    # the centerline, the rectangle IS spanned by a
+                    # whisker line. (Real box: whisker line crosses
+                    # the box from top-of-whisker to bottom; scatter
+                    # cluster: no such central line.)
+                    if dark_rows_in_center > 0.5 * bh:
+                        n_boxes_with_whiskers += 1
                 w_high = float(y_px_to_val(whisker_top_px))
                 w_low = float(y_px_to_val(whisker_bottom_px))
                 box_stats.append({
@@ -128,11 +165,20 @@ class BoxPlotExtractor(ChartExtractor):
                                               axis_cal=y_axis,
                                               image_size=(W, H),
                                               skip_first_band=False)
+            # Self-rejection: real box plots have whiskers on most
+            # boxes. If fewer than half of candidate boxes have
+            # whiskers, this is probably a scatter / cluster figure.
+            if (len(box_stats) >= 2
+                    and n_boxes_with_whiskers < max(1, len(box_stats) // 2)):
+                r.status = ExtractionStatus.NO_BARS
+                r.reason = (f"only {n_boxes_with_whiskers}/{len(box_stats)} "
+                              "candidates have whiskers; not box plots")
+                r.elapsed_seconds = time.time() - t0; return r
             r.status = ExtractionStatus.OK if len(box_stats) >= 2 \
                 else ExtractionStatus.PARTIAL
             r.confidence = min(0.85, 0.4 + 0.05 * len(box_stats)
                                 + 0.4 * y_axis.confidence)
-            r.reason = f"{len(box_stats)} boxes"
+            r.reason = f"{len(box_stats)} boxes ({n_boxes_with_whiskers} w/whiskers)"
         except Exception as e:
             r.status = ExtractionStatus.ERROR
             r.reason = f"{type(e).__name__}: {e}"

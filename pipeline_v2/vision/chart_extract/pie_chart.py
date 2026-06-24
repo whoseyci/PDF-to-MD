@@ -86,6 +86,39 @@ class PieChartExtractor(ChartExtractor):
             for (k, a, b) in wedges:
                 by_key[k] = by_key.get(k, 0) + (b - a)
             total = sum(by_key.values())
+            # Self-rejection: a real pie covers most of the 360° circle.
+            # Wedges covering <80% means we found a circular blob in
+            # something else (scatter cluster, bar chart artifact).
+            coverage = total / n_angles
+            if coverage < 0.80:
+                r.status = ExtractionStatus.NO_BARS
+                r.reason = (f"wedges cover only {round(100*coverage,1)}% "
+                              f"of circle; not a pie")
+                r.elapsed_seconds = time.time() - t0; return r
+            # Self-rejection: verify the detected circle is actually
+            # the figure's dominant content by sampling outside it --
+            # should be mostly background (white).
+            try:
+                check_r = int(rad * 1.15)
+                outside_bg = 0; outside_total = 0
+                for k in range(0, n_angles, 10):
+                    theta = (k / n_angles) * 2 * math.pi - math.pi / 2
+                    x = int(round(cx + check_r * math.cos(theta)))
+                    y = int(round(cy + check_r * math.sin(theta)))
+                    if 0 <= x < W and 0 <= y < H:
+                        outside_total += 1
+                        s = int(hsv[y, x, 1]); v = int(hsv[y, x, 2])
+                        if (s < 30 and v > 200) or v < 40:
+                            outside_bg += 1
+                if outside_total > 0:
+                    bg_frac = outside_bg / outside_total
+                    if bg_frac < 0.40:
+                        r.status = ExtractionStatus.NO_BARS
+                        r.reason = (f"only {round(100*bg_frac,1)}% bg "
+                                      f"outside circle; not a pie")
+                        r.elapsed_seconds = time.time() - t0; return r
+            except Exception:
+                pass
             pie_slices = []
             for k, span in sorted(by_key.items(), key=lambda kv: -kv[1]):
                 pct = round(100.0 * span / total, 2)

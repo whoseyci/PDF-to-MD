@@ -649,7 +649,88 @@ def main():
     print("=== axis ticks require ticks ==="); test_axis_requires_ticks(t)
     print("=== reflective routes equations ==="); test_reflective_routes_equations(t)
     print("=== figure_refs cross-caption ==="); test_figure_refs_cross_caption(t)
+    print("=== parallel extractor ==="); test_parallel_extractor(t)
+    print("=== structural credibility ==="); test_structural_credibility(t)
+    print("=== smart extractor caption-decisive ==="); test_smart_caption_decisive(t)
     return t.report()
+
+
+def test_parallel_extractor(t):
+    """Parallel extractor returns a winner from all candidates."""
+    import tempfile
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from pipeline_v2.vision.chart_extract.parallel_extractor import (
+        run_parallel_extraction, ParallelExtractionTrace)
+    with tempfile.TemporaryDirectory() as td:
+        img = Path(td) / "bar.png"
+        fig, ax = plt.subplots(figsize=(5, 3), dpi=100)
+        ax.bar(list("ABCDE"), [3, 7, 5, 9, 2])
+        plt.savefig(img); plt.close(fig)
+        tr = run_parallel_extraction(image_path=img,
+                                       caption="Bar chart of values")
+        t.check(isinstance(tr, ParallelExtractionTrace), "returned trace")
+        t.check(tr.n_extractors_run >= 4, f"ran multiple extractors: {tr.n_extractors_run}")
+        t.check(tr.winner is not None, "got a winner")
+        t.check(tr.winner_kind == "bar_chart",
+                f"correct winner: {tr.winner_kind}")
+
+
+def test_structural_credibility(t):
+    """Credibility penalises trivial/degenerate extractions."""
+    from pipeline_v2.vision.chart_extract.parallel_extractor import (
+        _structural_credibility)
+    from pipeline_v2.vision.chart_extract.base import (
+        ChartExtractionResult, ExtractionStatus)
+    # A real-looking bar chart result
+    real_bar = ChartExtractionResult(
+        extractor="x", status=ExtractionStatus.OK, confidence=0.9,
+        bar_boxes=[[0, 0, 10, 30], [20, 5, 10, 25], [40, 10, 10, 20]])
+    t.check(_structural_credibility(real_bar) >= 0.2,
+            f"real bar credible: {_structural_credibility(real_bar)}")
+    # A fake bar chart with 1 bar
+    fake_bar = ChartExtractionResult(
+        extractor="x", status=ExtractionStatus.OK, confidence=0.9,
+        bar_boxes=[[0, 0, 10, 30]])
+    t.check(_structural_credibility(fake_bar) < 0,
+            f"single-bar penalised: {_structural_credibility(fake_bar)}")
+    # Box plot with all-identical medians (fake)
+    fake_box = ChartExtractionResult(
+        extractor="x", status=ExtractionStatus.OK, confidence=0.9,
+        box_stats=[{"median": 1.0, "q1": 0.5, "q3": 1.5,
+                     "whisker_low": 0.5, "whisker_high": 1.5},
+                    {"median": 1.0, "q1": 0.5, "q3": 1.5,
+                     "whisker_low": 0.5, "whisker_high": 1.5},
+                    {"median": 1.0, "q1": 0.5, "q3": 1.5,
+                     "whisker_low": 0.5, "whisker_high": 1.5}])
+    t.check(_structural_credibility(fake_box) < 0,
+            f"flat-medians penalised: {_structural_credibility(fake_box)}")
+
+
+def test_smart_caption_decisive(t):
+    """Smart dispatcher uses reflective path when caption is decisive."""
+    import tempfile
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from pipeline_v2.vision.chart_extract.parallel_extractor import (
+        run_smart_extraction)
+    with tempfile.TemporaryDirectory() as td:
+        img = Path(td) / "bar.png"
+        fig, ax = plt.subplots(figsize=(5, 3), dpi=100)
+        ax.bar(list("ABCDE"), [3, 7, 5, 9, 2])
+        plt.savefig(img); plt.close(fig)
+        # Rich caption -> reflective path
+        tr_rich = run_smart_extraction(
+            image_path=img,
+            caption="Figure 1. Bar chart of yield by treatment.")
+        t.check("caption-decisive" in tr_rich.arbitration_reason,
+                f"rich-caption used reflective: {tr_rich.arbitration_reason}")
+        # No caption -> parallel path
+        tr_none = run_smart_extraction(image_path=img, caption="")
+        t.check("caption-decisive" not in tr_none.arbitration_reason,
+                f"empty-caption used parallel: {tr_none.arbitration_reason}")
 
 
 def test_decorative_specialist(t):
