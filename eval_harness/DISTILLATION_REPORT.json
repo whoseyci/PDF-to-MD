@@ -1,0 +1,253 @@
+{
+  "summary": {
+    "n_total": 476,
+    "student": 107,
+    "teacher": 0,
+    "caption_only": 19,
+    "empty": 350,
+    "teacher_seconds_total": 0.0,
+    "teacher_calls_saved_pct": 22.5
+  },
+  "per_paper": [
+    {
+      "slug": "baden-bohm-2023",
+      "n_figs": 8,
+      "student_ok": 7,
+      "teacher_needed": 0,
+      "empty_caption": 1
+    },
+    {
+      "slug": "carceles-rodriguez-et-al-2022",
+      "n_figs": 5,
+      "student_ok": 3,
+      "teacher_needed": 0,
+      "empty_caption": 2
+    },
+    {
+      "slug": "cast-model-paper-2026",
+      "n_figs": 6,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 6
+    },
+    {
+      "slug": "cerda-et-al-2022",
+      "n_figs": 6,
+      "student_ok": 1,
+      "teacher_needed": 2,
+      "empty_caption": 3
+    },
+    {
+      "slug": "chapela-oliva-et-al-2024-viticulture-cap-critical-analysis",
+      "n_figs": 3,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 3
+    },
+    {
+      "slug": "cuadros-casanova-et-al-2022",
+      "n_figs": 11,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 11
+    },
+    {
+      "slug": "duran-zuazo-et-al-2020-benefits-organic-olive-rainfed-system",
+      "n_figs": 3,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 3
+    },
+    {
+      "slug": "efthimiou-2024",
+      "n_figs": 10,
+      "student_ok": 7,
+      "teacher_needed": 1,
+      "empty_caption": 2
+    },
+    {
+      "slug": "fangliang-et-al-2024",
+      "n_figs": 27,
+      "student_ok": 8,
+      "teacher_needed": 1,
+      "empty_caption": 18
+    },
+    {
+      "slug": "frontiers-in-soil-science-2026",
+      "n_figs": 7,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 7
+    },
+    {
+      "slug": "garcia-ruiz-castillo-llanque-et-al-2020",
+      "n_figs": 4,
+      "student_ok": 4,
+      "teacher_needed": 0,
+      "empty_caption": 0
+    },
+    {
+      "slug": "garcia-ruiz-castillo-llanque-et-al-2023",
+      "n_figs": 8,
+      "student_ok": 8,
+      "teacher_needed": 0,
+      "empty_caption": 0
+    },
+    {
+      "slug": "garrido-et-al-2026",
+      "n_figs": 6,
+      "student_ok": 0,
+      "teacher_needed": 3,
+      "empty_caption": 3
+    },
+    {
+      "slug": "gomez-2025",
+      "n_figs": 11,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 11
+    },
+    {
+      "slug": "gonzalez-rosado-et-al-2021",
+      "n_figs": 4,
+      "student_ok": 4,
+      "teacher_needed": 0,
+      "empty_caption": 0
+    },
+    {
+      "slug": "homet-et-al-2024",
+      "n_figs": 3,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 3
+    },
+    {
+      "slug": "jimenez-et-al-2023-farming-system-soil-management-floristic",
+      "n_figs": 6,
+      "student_ok": 4,
+      "teacher_needed": 1,
+      "empty_caption": 1
+    },
+    {
+      "slug": "leal-filho-et-al-2026",
+      "n_figs": 5,
+      "student_ok": 3,
+      "teacher_needed": 1,
+      "empty_caption": 1
+    },
+    {
+      "slug": "lopez-bernal-et-al-2023",
+      "n_figs": 14,
+      "student_ok": 7,
+      "teacher_needed": 1,
+      "empty_caption": 6
+    },
+    {
+      "slug": "lopez-vicente-calvo-seas-alvarez-cerda-2020",
+      "n_figs": 6,
+      "student_ok": 6,
+      "teacher_needed": 0,
+      "empty_caption": 0
+    },
+    {
+      "slug": "marja-et-al-2022",
+      "n_figs": 1,
+      "student_ok": 1,
+      "teacher_needed": 0,
+      "empty_caption": 0
+    },
+    {
+      "slug": "mesas-et-al-2022",
+      "n_figs": 3,
+      "student_ok": 2,
+      "teacher_needed": 1,
+      "empty_caption": 0
+    },
+    {
+      "slug": "oecd-2023",
+      "n_figs": 245,
+      "student_ok": 10,
+      "teacher_needed": 0,
+      "empty_caption": 235
+    },
+    {
+      "slug": "pareja-sanchez-et-al-2024",
+      "n_figs": 6,
+      "student_ok": 5,
+      "teacher_needed": 1,
+      "empty_caption": 0
+    },
+    {
+      "slug": "penuela-et-al-2025",
+      "n_figs": 6,
+      "student_ok": 5,
+      "teacher_needed": 1,
+      "empty_caption": 0
+    },
+    {
+      "slug": "pereira-de-souza-et-al-2023",
+      "n_figs": 8,
+      "student_ok": 6,
+      "teacher_needed": 0,
+      "empty_caption": 2
+    },
+    {
+      "slug": "repullo-ruiberriz-de-torres-et-al-2021",
+      "n_figs": 7,
+      "student_ok": 3,
+      "teacher_needed": 4,
+      "empty_caption": 0
+    },
+    {
+      "slug": "rodriguez-lizana-et-al-2020",
+      "n_figs": 7,
+      "student_ok": 2,
+      "teacher_needed": 2,
+      "empty_caption": 3
+    },
+    {
+      "slug": "rodriguez-ruiz-gomez-munoz-2025",
+      "n_figs": 11,
+      "student_ok": 11,
+      "teacher_needed": 0,
+      "empty_caption": 0
+    },
+    {
+      "slug": "s11104-012-1395-0",
+      "n_figs": 3,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 3
+    },
+    {
+      "slug": "s11356-016-8339-9",
+      "n_figs": 5,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 5
+    },
+    {
+      "slug": "sanchez-moreno-et-al-2015-tillage-herbicide-decrease-soil-bi",
+      "n_figs": 3,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 3
+    },
+    {
+      "slug": "soil-use-and-management-2024-fernandezsoler-cover-crops-impr",
+      "n_figs": 8,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 8
+    },
+    {
+      "slug": "torrus-castillo-et-al-2022",
+      "n_figs": 10,
+      "student_ok": 0,
+      "teacher_needed": 0,
+      "empty_caption": 10
+    }
+  ],
+  "estimated_teacher_seconds_saved": 6420,
+  "teacher_seconds_per_call_assumption": 60
+}

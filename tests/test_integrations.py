@@ -639,7 +639,92 @@ def main():
     print("=== eval-harness metrics ==="); test_eval_metrics(t)
     print("=== corpus browser ==="); test_corpus_browser(t)
     print("=== failure-mode generators ==="); test_failure_modes_generators(t)
+    print("=== mixture classifier E15 ==="); test_mixture_classifier(t)
+    print("=== reflector E17 ==="); test_reflector(t)
+    print("=== distillation E16 ==="); test_distillation(t)
     return t.report()
+
+
+def test_mixture_classifier(t):
+    """E15 -- Mixture classifier returns a sane result with no inputs."""
+    from pipeline_v2.vision.mixture_classifier import (
+        classify_with_mixture, classify_figure_hybrid, MixtureResult,
+        compute_image_features, ImageFeatures)
+    # Empty inputs
+    r = classify_with_mixture()
+    t.check(isinstance(r, MixtureResult), "returns MixtureResult")
+    t.check(r.top_kind is not None, "top_kind set")
+    # Caption-driven (strong keyword signal)
+    r2 = classify_with_mixture(caption="Figure 1. Stacked bar chart of land cover")
+    t.check(r2.top_kind.value == "stacked_bar_chart",
+            f"caption decisive: {r2.top_kind.value}")
+    # Hybrid skips Mixture when caption is strong
+    r3 = classify_figure_hybrid(
+        caption="Figure 2. Box plot of treatment medians by group",
+        image_path=None)
+    t.check(r3.top_kind.value == "box_plot", f"hybrid: {r3.top_kind.value}")
+    t.check("keyword" in r3.top_reason, f"used keyword: {r3.top_reason}")
+    # Image features safe on missing file
+    f = compute_image_features(Path("/nonexistent.png"))
+    t.check(isinstance(f, ImageFeatures), "ImageFeatures on missing file")
+    t.check(not f.has_data, "no data on missing file")
+
+
+def test_reflector(t):
+    """E17 -- Reflector returns sensible decisions."""
+    from pipeline_v2.vision.chart_extract.reflector import (
+        reflect, ReflectionAction)
+    from pipeline_v2.vision.chart_extract.base import (
+        ChartExtractionResult, ExtractionStatus)
+    # Hard-OK at high confidence -> accept
+    r = ChartExtractionResult(extractor="x", status=ExtractionStatus.OK,
+                                confidence=0.9)
+    d = reflect(r)
+    t.check(d.action == ReflectionAction.ACCEPT, f"high-conf accept: {d.action}")
+    # NO_BARS with fallback ladder -> fall through
+    r2 = ChartExtractionResult(extractor="bar/v1",
+                                 status=ExtractionStatus.NO_BARS)
+    d2 = reflect(r2, fallback_ladder=["line_plot"])
+    t.check(d2.action == ReflectionAction.FALLBACK_TO_NEXT_KIND,
+            f"no_bars -> fallback: {d2.action}")
+    t.check(d2.suggested_kind == "line_plot",
+            f"correct suggestion: {d2.suggested_kind}")
+    # OCR_FAILED, no retry yet -> retry
+    r3 = ChartExtractionResult(extractor="bar/v1",
+                                 status=ExtractionStatus.OCR_FAILED)
+    d3 = reflect(r3, already_retried=False)
+    t.check(d3.action == ReflectionAction.RETRY_WITH_PARAMS,
+            f"ocr_failed -> retry: {d3.action}")
+    # OCR_FAILED, already retried -> give up
+    d4 = reflect(r3, already_retried=True)
+    t.check(d4.action == ReflectionAction.GIVE_UP,
+            f"ocr_failed retried -> give up: {d4.action}")
+
+
+def test_distillation(t):
+    """E16 -- caption_distill student-teacher routing."""
+    from pipeline_v2.vision.caption_distill import (
+        assess_caption, distill_alt_text, DistillResult, DistillStats)
+    # Empty caption -> 0 confidence
+    t.check(assess_caption("") == 0.0, "empty caption -> 0")
+    t.check(assess_caption(None) == 0.0, "None caption -> 0")
+    # Long, informative caption -> high confidence
+    long = ("Figure 3. The graph shows yields for 5 treatments over the "
+             "2019-2024 study period, comparing organic and conventional "
+             "management at 4 sites in Spain.")
+    c1 = assess_caption(long)
+    t.check(c1 >= 0.6, f"informative caption confidence: {c1}")
+    # Distill with no teacher -> student path
+    r = distill_alt_text(caption=long, teacher_fn=None)
+    t.check(r.source == "student", f"source: {r.source}")
+    t.check(r.alt_text.startswith("Figure 3"), "alt_text preserved")
+    # Distill with empty caption -> empty
+    r2 = distill_alt_text(caption="", teacher_fn=None)
+    t.check(r2.source == "empty", f"empty: {r2.source}")
+    # Stats helper
+    s = DistillStats()
+    s.add(r); s.add(r2)
+    t.check(s.summary()["n_total"] == 2, "stats counted both")
 
 
 if __name__ == "__main__":

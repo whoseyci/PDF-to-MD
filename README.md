@@ -183,6 +183,53 @@ Note: `pipeline_v2/convert.py` (the full pipeline) still uses
 inline figure extraction. The smart dispatcher is best used when you
 just want text (e.g. for indexing / RAG / search).
 
+## RecursiveMAS-inspired patterns (E15–E17, shipped)
+
+After surveying the [RecursiveMAS paper](https://recursivemas.github.io/)
+(Yang et al., 2026, arXiv 2604.25917) we couldn't adopt the literal
+latent-state mechanism (needs CUDA, shared model frameworks, training
+infra — see `RESEARCH_NOTES_LATEST.md` for the honest constraints
+table). But three of its four *collaboration patterns* translated to
+our codebase without the latent-space machinery:
+
+* **E15 Mixture-of-specialists** (`pipeline_v2/vision/mixture_classifier.py`)
+  — every `FigureKind` has a small specialist that scores its own
+  confidence using cheap image features (line density, bar-strip count,
+  Hough circles, …) + the caption keyword score. A summariser ranks
+  them and emits a fallback ladder for the runner. Hybrid policy
+  (`classify_figure_hybrid`) skips the image-loading work when the
+  caption keyword classifier is already decisive (≥2 keyword hits).
+* **E16 Distillation** (`pipeline_v2/vision/caption_distill.py`) — a
+  rule-based student decides whether the caption is self-sufficient as
+  alt-text; the (slow) VLM teacher is only invoked when the student
+  says "I'm unsure". **Corpus run: student handles 22.5% (107/476) of
+  figures**, saving ~107 min of teacher time per full corpus pass.
+* **E17 Reflector / Deliberation**
+  (`pipeline_v2/vision/chart_extract/reflector.py` +
+  `reflective_runner.py`) — when an extractor returns PARTIAL /
+  NO_BARS / OCR_FAILED, the Reflector decides whether to retry with
+  tighter params, fall through to the next ladder kind, or give up.
+  Bounded: at most 1 retry per kind + 2 fallback kinds, so worst-case
+  ~4 extractor calls per figure.
+
+Bench (`eval_harness/bench_mixture_reflector.py`):
+
+| Scenario | Classifier hit-rate | Extractor OK rate |
+|---|---|---|
+| With captions, keyword baseline | 100% | 86% |
+| With captions, Mixture (E15) | 79% | 86% |
+| **Without captions**, keyword | **0%** | n/a |
+| **Without captions**, Mixture | **29%** | n/a |
+| **Without captions**, Reflective (E17) | n/a | **50%** |
+
+**The honest takeaway**: with informative captions the keyword
+classifier is already optimal. E15+E17 earn their keep on figures
+with weak/absent captions, where reflective fall-through recovers
+50% of extractions that vanilla would lose. The pattern costs ~2×
+extraction time (worst case), so the runner should opt-in via
+`classify_figure_hybrid` + `run_reflective_extraction`, not switch
+defaults unconditionally.
+
 ## Research-track features (E1–E9, all shipped)
 
 All 9 experiments proposed in `RESEARCH_DIRECTIONS.md` are now
