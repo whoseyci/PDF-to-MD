@@ -26,7 +26,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 _CAPTION_RE = re.compile(
-    r"^\s*(?:Figure|Fig\.|Fig)\s+(\d+[A-Za-z]?)[.:\)]?\s*(.*)$",
+    # Accept: "Figure 3", "Fig. 3", "Figure 3.2", "Box 3.1",
+    # "Annex Figure 5", "Table 4" (callers can filter); supports
+    # OECD-style 'Figure 3.1' compound numbers.
+    r"^\s*(?:Annex\s+)?(?:Figure|Fig\.|Fig|Chart|Box)\s+"
+    r"(\d+(?:\.\d+)?[A-Za-z]?)[.:\)]?\s*(.*)$",
     re.IGNORECASE | re.MULTILINE,
 )
 

@@ -219,16 +219,39 @@ Bench (`eval_harness/bench_mixture_reflector.py`):
 | With captions, keyword baseline | 100% | 86% |
 | With captions, Mixture (E15) | 79% | 86% |
 | **Without captions**, keyword | **0%** | n/a |
-| **Without captions**, Mixture | **29%** | n/a |
-| **Without captions**, Reflective (E17) | n/a | **50%** |
+| **Without captions**, Mixture | 14% | n/a |
+| **Without captions**, Reflective (E17) | n/a | **79%** |
 
-**The honest takeaway**: with informative captions the keyword
-classifier is already optimal. E15+E17 earn their keep on figures
-with weak/absent captions, where reflective fall-through recovers
-50% of extractions that vanilla would lose. The pattern costs ~2×
-extraction time (worst case), so the runner should opt-in via
-`classify_figure_hybrid` + `run_reflective_extraction`, not switch
-defaults unconditionally.
+### Round 2 accuracy push (Sep 2026)
+
+After probing real corpus figures and seeing that 100% of figures
+across all 35 papers had no chart extraction (the runner was missing
+key wiring), four targeted fixes:
+
+1. **Auto-OCR in `run_reflective_extraction`** — chart extractors need
+   axis labels to calibrate; without OCR they ALL return `no_axis`.
+   The reflective runner now OCRs the figure once when no `ocr_text`
+   is supplied. Single biggest accuracy lever.
+2. **`has_chart_axes` feature** — universal "is this even a chart"
+   gate (detects two long perpendicular dark lines). Chart specialists
+   now require this feature; diagram/schematic specialists *penalise*
+   it. Suppresses the Hough-circles noise that was firing pie/scatter
+   specialists on schematics.
+3. **Diagram routing in the reflective runner** — `flow_diagram` /
+   `schematic` kinds now route through `diagram_extract` (mermaid
+   output), not just chart extractors. Previously diagrams returned
+   "no_extractor"; now they return PARTIAL with mermaid graph.
+4. **Caption backfill** (`pipeline_v2/caption_backfill.py`) — runs
+   `caption_pairing` on the source PDF and merges new captions into
+   already-converted `paper.json`s. Non-destructive (only fills empty
+   fields). Corpus run: filled **98/339 (28.9%)** of empty captions
+   across **23/35 papers**. This in turn doubled distillation's
+   student win rate from 22.5% → **40.1%** (~191 min teacher saved
+   per corpus run).
+
+Without-caption reflective extraction went from **50% → 78.6%** on
+the synthetic bench after these fixes. With-caption performance
+unchanged (already at 86%, capped by extractor quality).
 
 ## Research-track features (E1–E9, all shipped)
 

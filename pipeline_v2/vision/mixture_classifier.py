@@ -60,6 +60,12 @@ class ImageFeatures:
     n_bar_runs: int = 0           # number of vertical-saturated-column runs (bars)
     text_pixel_frac: float = 0.0  # rough estimate of text area
     is_grayscale: bool = False
+    # Universal "is this a chart" gate -- 2 perpendicular thick straight
+    # lines suggest axes. Used as a hard prior to suppress chart
+    # specialists on schematics/photos/maps.
+    has_chart_axes: bool = False
+    h_axis_length_frac: float = 0.0  # longest horizontal black line / image width
+    v_axis_length_frac: float = 0.0  # longest vertical black line / image height
 
 
 def compute_image_features(image_path: Optional[Path]) -> ImageFeatures:
@@ -144,6 +150,46 @@ def compute_image_features(image_path: Optional[Path]) -> ImageFeatures:
         # Text-area estimate: dark fragmented regions
         dark_frac = float((gray < 100).mean())
         f.text_pixel_frac = round(dark_frac, 4)
+
+        # Chart-axis detection. Charts have two long perpendicular
+        # near-black straight lines. Schematics, photos, maps don't.
+        # We use morphological opening with a long horizontal/vertical
+        # kernel to highlight axis lines specifically.
+        try:
+            dark = (gray < 120).astype(np.uint8) * 255
+            # Horizontal kernel length = 30% of width
+            kx = max(20, int(0.30 * w))
+            h_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kx, 1))
+            h_lines = cv2.morphologyEx(dark, cv2.MORPH_OPEN, h_kernel)
+            # Vertical kernel length = 30% of height
+            ky = max(20, int(0.30 * h))
+            v_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, ky))
+            v_lines = cv2.morphologyEx(dark, cv2.MORPH_OPEN, v_kernel)
+            # Longest horizontal run (by row), longest vertical run (by col)
+            h_per_row = h_lines.sum(axis=1) / 255  # pixel count per row
+            v_per_col = v_lines.sum(axis=0) / 255  # pixel count per col
+            longest_h = float(h_per_row.max()) / max(1, w)
+            longest_v = float(v_per_col.max()) / max(1, h)
+            f.h_axis_length_frac = round(longest_h, 3)
+            f.v_axis_length_frac = round(longest_v, 3)
+            # Axes test: BOTH a long horizontal AND vertical line.
+            # Position constraints are intentionally loose because plot
+            # frames vary -- top axis ("twin axis") plots, top-left
+            # legend boxes, etc all break a "must be bottom-left" rule.
+            # We require:
+            #   * both lines >= 25% of image dim
+            #   * the lines aren't both right at the image edge
+            #     (which would be a page border, not axes)
+            if longest_h >= 0.25 and longest_v >= 0.25:
+                row_argmax = int(np.argmax(h_per_row))
+                col_argmax = int(np.argmax(v_per_col))
+                # Not at extreme edges (top 2% or bottom 2% rows)
+                row_inside = (h * 0.02) < row_argmax < (h * 0.98)
+                col_inside = (w * 0.02) < col_argmax < (w * 0.98)
+                if row_inside and col_inside:
+                    f.has_chart_axes = True
+        except Exception:
+            pass
     except Exception:
         # Best-effort; if anything blows up, just return what we have
         pass
@@ -193,12 +239,17 @@ def specialist_bar_chart(caption: str, ocr_text: str,
     cap = _caption_keyword_score(caption, ocr_text, FigureKind.BAR_CHART)
     bar = _scale(img.n_bar_runs, 2, 12) if img.has_data else 0.0
     has_axis = 1.0 if (ocr_text and re.search(r"\d", ocr_text)) else 0.3
-    score = 0.45 * bar + 0.35 * cap + 0.20 * has_axis
+    # Hard chart-axis gate: bar charts MUST have axes. If no axes
+    # detected AND no caption signal, score plummets.
+    axis_prior = 1.0 if (img.has_data and img.has_chart_axes) else 0.0
+    if not img.has_data:
+        axis_prior = 0.5  # unknown -- don't penalise
+    score = 0.30 * bar + 0.30 * cap + 0.15 * has_axis + 0.25 * axis_prior
     return SpecialistScore(
         kind=FigureKind.BAR_CHART, score=round(score, 3),
-        reason=f"{img.n_bar_runs} vertical strips, cap={cap:.2f}",
+        reason=f"{img.n_bar_runs} strips, axes={img.has_chart_axes}, cap={cap:.2f}",
         components={"bar_strips": bar, "caption_kw": cap,
-                     "has_numeric": has_axis})
+                     "has_numeric": has_axis, "axis_prior": axis_prior})
 
 
 def specialist_stacked_bar(caption: str, ocr_text: str,
@@ -207,12 +258,15 @@ def specialist_stacked_bar(caption: str, ocr_text: str,
                                    FigureKind.STACKED_BAR_CHART)
     bar = _scale(img.n_bar_runs, 2, 12) if img.has_data else 0.0
     multi_color = _scale(img.n_distinct_colors, 6, 30) if img.has_data else 0.0
-    score = 0.40 * bar + 0.30 * cap + 0.30 * multi_color
+    axis_prior = 1.0 if (img.has_data and img.has_chart_axes) else 0.0
+    if not img.has_data: axis_prior = 0.5
+    score = 0.30 * bar + 0.25 * cap + 0.20 * multi_color + 0.25 * axis_prior
     return SpecialistScore(
         kind=FigureKind.STACKED_BAR_CHART, score=round(score, 3),
-        reason=f"{img.n_bar_runs} strips, {img.n_distinct_colors} colors",
+        reason=f"{img.n_bar_runs} strips, {img.n_distinct_colors} colors, axes={img.has_chart_axes}",
         components={"bar_strips": bar, "caption_kw": cap,
-                     "multi_color": multi_color})
+                     "multi_color": multi_color,
+                     "axis_prior": axis_prior})
 
 
 def specialist_pie(caption: str, ocr_text: str,
@@ -251,46 +305,53 @@ def specialist_line(caption: str, ocr_text: str,
     line_d = _scale(img.line_density, 0.005, 0.05) if img.has_data else 0.0
     few_rects = 1.0 - _scale(img.n_rect_components, 0, 6) if img.has_data else 0.0
     no_bars = 1.0 - _scale(img.n_bar_runs, 0, 6) if img.has_data else 0.0
-    score = 0.4 * line_d + 0.25 * cap + 0.20 * few_rects + 0.15 * no_bars
+    axis_prior = 1.0 if (img.has_data and img.has_chart_axes) else 0.0
+    if not img.has_data: axis_prior = 0.5
+    score = (0.25 * line_d + 0.20 * cap + 0.15 * few_rects
+               + 0.10 * no_bars + 0.30 * axis_prior)
     return SpecialistScore(
         kind=FigureKind.LINE_PLOT, score=round(score, 3),
-        reason=f"edges={img.line_density:.3f}",
+        reason=f"edges={img.line_density:.3f}, axes={img.has_chart_axes}",
         components={"line_density": line_d, "caption_kw": cap,
-                     "few_rects": few_rects, "no_bars": no_bars})
+                     "few_rects": few_rects, "no_bars": no_bars,
+                     "axis_prior": axis_prior})
 
 
 def specialist_scatter(caption: str, ocr_text: str,
                         img: ImageFeatures) -> SpecialistScore:
     cap = _caption_keyword_score(caption, ocr_text, FigureKind.SCATTER_PLOT)
-    # Scatter: many small CCs (markers), few vertical bar strips,
-    # axis tick labels present in OCR.
     many_small = _scale(img.n_rect_components, 10, 100) if img.has_data else 0.0
     few_bars = 1.0 - _scale(img.n_bar_runs, 0, 4) if img.has_data else 0.0
     has_axis_nums = 0.0
     if ocr_text:
         import re as _re
-        # axis ticks usually have multiple isolated short numbers
         nums = _re.findall(r"\b\d+(?:\.\d+)?\b", ocr_text)
         has_axis_nums = _scale(len(nums), 4, 20)
-    score = 0.40 * many_small + 0.25 * cap + 0.20 * few_bars + 0.15 * has_axis_nums
+    axis_prior = 1.0 if (img.has_data and img.has_chart_axes) else 0.0
+    if not img.has_data: axis_prior = 0.5
+    score = (0.30 * many_small + 0.20 * cap + 0.15 * few_bars
+               + 0.10 * has_axis_nums + 0.25 * axis_prior)
     return SpecialistScore(
         kind=FigureKind.SCATTER_PLOT, score=round(score, 3),
-        reason=f"small_ccs={img.n_rect_components}, bars={img.n_bar_runs}",
+        reason=f"small_ccs={img.n_rect_components}, axes={img.has_chart_axes}",
         components={"many_small": many_small, "caption_kw": cap,
                      "few_bars": few_bars,
-                     "has_axis_nums": has_axis_nums})
+                     "has_axis_nums": has_axis_nums,
+                     "axis_prior": axis_prior})
 
 
 def specialist_box(caption: str, ocr_text: str,
                     img: ImageFeatures) -> SpecialistScore:
     cap = _caption_keyword_score(caption, ocr_text, FigureKind.BOX_PLOT)
-    # Box plot: a few small rectangles roughly equally spaced
     few_boxes = _scale(img.n_rect_components, 2, 8) if img.has_data else 0.0
-    score = 0.35 * few_boxes + 0.55 * cap
+    axis_prior = 1.0 if (img.has_data and img.has_chart_axes) else 0.0
+    if not img.has_data: axis_prior = 0.5
+    score = 0.25 * few_boxes + 0.45 * cap + 0.30 * axis_prior
     return SpecialistScore(
         kind=FigureKind.BOX_PLOT, score=round(score, 3),
-        reason=f"rect_ccs={img.n_rect_components}, cap={cap:.2f}",
-        components={"few_boxes": few_boxes, "caption_kw": cap})
+        reason=f"rect_ccs={img.n_rect_components}, axes={img.has_chart_axes}, cap={cap:.2f}",
+        components={"few_boxes": few_boxes, "caption_kw": cap,
+                     "axis_prior": axis_prior})
 
 
 def specialist_flow_diagram(caption: str, ocr_text: str,
@@ -299,22 +360,30 @@ def specialist_flow_diagram(caption: str, ocr_text: str,
                                    FigureKind.FLOW_DIAGRAM)
     boxes = _scale(img.n_rect_components, 3, 15) if img.has_data else 0.0
     edges_ok = _scale(img.line_density, 0.005, 0.03) if img.has_data else 0.0
-    score = 0.30 * boxes + 0.40 * cap + 0.30 * edges_ok
+    # Diagrams DON'T have plot axes. Penalise if axes are present.
+    no_axis_prior = 1.0 if (img.has_data and not img.has_chart_axes) else 0.0
+    if not img.has_data: no_axis_prior = 0.5
+    score = (0.25 * boxes + 0.35 * cap + 0.20 * edges_ok
+               + 0.20 * no_axis_prior)
     return SpecialistScore(
         kind=FigureKind.FLOW_DIAGRAM, score=round(score, 3),
-        reason=f"rect_ccs={img.n_rect_components}, edges={img.line_density:.3f}",
-        components={"boxes": boxes, "caption_kw": cap, "edges_ok": edges_ok})
+        reason=f"rect_ccs={img.n_rect_components}, axes={img.has_chart_axes}",
+        components={"boxes": boxes, "caption_kw": cap,
+                     "edges_ok": edges_ok, "no_axis_prior": no_axis_prior})
 
 
 def specialist_schematic(caption: str, ocr_text: str,
                           img: ImageFeatures) -> SpecialistScore:
     cap = _caption_keyword_score(caption, ocr_text, FigureKind.SCHEMATIC)
     boxes = _scale(img.n_rect_components, 3, 15) if img.has_data else 0.0
-    score = 0.40 * boxes + 0.60 * cap
+    no_axis_prior = 1.0 if (img.has_data and not img.has_chart_axes) else 0.0
+    if not img.has_data: no_axis_prior = 0.5
+    score = 0.30 * boxes + 0.50 * cap + 0.20 * no_axis_prior
     return SpecialistScore(
         kind=FigureKind.SCHEMATIC, score=round(score, 3),
-        reason=f"boxes={img.n_rect_components}",
-        components={"boxes": boxes, "caption_kw": cap})
+        reason=f"boxes={img.n_rect_components}, axes={img.has_chart_axes}",
+        components={"boxes": boxes, "caption_kw": cap,
+                     "no_axis_prior": no_axis_prior})
 
 
 def specialist_map(caption: str, ocr_text: str,

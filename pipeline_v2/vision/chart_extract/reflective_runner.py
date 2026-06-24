@@ -59,7 +59,7 @@ class ReflectiveTrace:
 
 
 # Map FigureKind values that have an extractor in registry
-_EXTRACTABLE_KINDS = {
+_EXTRACTABLE_CHART_KINDS = {
     FigureKind.BAR_CHART,
     FigureKind.STACKED_BAR_CHART,
     FigureKind.BOX_PLOT,
@@ -67,6 +67,13 @@ _EXTRACTABLE_KINDS = {
     FigureKind.SCATTER_PLOT,
     FigureKind.LINE_PLOT,
 }
+
+_EXTRACTABLE_DIAGRAM_KINDS = {
+    FigureKind.FLOW_DIAGRAM,
+    FigureKind.SCHEMATIC,
+}
+
+_EXTRACTABLE_KINDS = _EXTRACTABLE_CHART_KINDS | _EXTRACTABLE_DIAGRAM_KINDS
 
 
 def _try_extract(kind: FigureKind, image_path: Path,
@@ -76,27 +83,73 @@ def _try_extract(kind: FigureKind, image_path: Path,
     """Build the extractor for `kind` and run it once. Returns
     (result, extractor_name) or (None, '') if no extractor exists.
 
-    `retry_params` are best-effort: we try to pass them to the extractor
-    constructor; if the extractor doesn't accept them, they're ignored.
+    Handles BOTH chart kinds (via registry) AND diagram kinds (via
+    diagram_extract). For diagram kinds we wrap the DiagramExtractionResult
+    in a ChartExtractionResult so the reflector sees a uniform shape.
     """
-    try:
-        from .registry import build_chart_extractor
-    except ImportError:
-        return None, ""
-    if kind not in _EXTRACTABLE_KINDS:
-        return None, ""
-    extractor = build_chart_extractor(kind)
-    if extractor is None:
-        return None, ""
-    name = extractor.name
-    # Try to pass retry params to underlying extractor; most ignore them
-    try:
-        r = extractor.extract(image_path, caption=caption, ocr_text=ocr_text)
-    except Exception as e:
-        r = ChartExtractionResult(
-            extractor=name, status=ExtractionStatus.ERROR,
-            reason=f"{type(e).__name__}: {e}")
-    return r, name
+    if kind in _EXTRACTABLE_CHART_KINDS:
+        try:
+            from .registry import build_chart_extractor
+        except ImportError:
+            return None, ""
+        extractor = build_chart_extractor(kind)
+        if extractor is None:
+            return None, ""
+        name = extractor.name
+        try:
+            r = extractor.extract(image_path, caption=caption,
+                                    ocr_text=ocr_text)
+        except Exception as e:
+            r = ChartExtractionResult(
+                extractor=name, status=ExtractionStatus.ERROR,
+                reason=f"{type(e).__name__}: {e}")
+        return r, name
+
+    if kind in _EXTRACTABLE_DIAGRAM_KINDS:
+        try:
+            from ..diagram_extract import extract_diagram
+        except ImportError:
+            return None, ""
+        name = f"diagram_extract/{kind.value}"
+        try:
+            d = extract_diagram(image_path)
+        except Exception as e:
+            return ChartExtractionResult(
+                extractor=name, status=ExtractionStatus.ERROR,
+                reason=f"{type(e).__name__}: {e}"), name
+        # Convert DiagramExtractionResult -> ChartExtractionResult
+        # Diagram is "ok" if it found >= 2 nodes
+        if d.status == "ok" and len(d.nodes) >= 2:
+            status = ExtractionStatus.OK
+            confidence = d.confidence or 0.6
+            reason = f"{len(d.nodes)} nodes, {len(d.edges)} edges"
+        elif d.status == "partial" or len(d.nodes) > 0:
+            status = ExtractionStatus.PARTIAL
+            confidence = 0.4
+            reason = f"partial: {d.reason or ''} ({len(d.nodes)} nodes)"
+        else:
+            status = ExtractionStatus.NO_BARS  # closest sentinel
+            confidence = 0.0
+            reason = d.reason or "no diagram structure"
+        out = ChartExtractionResult(
+            extractor=name, status=status, confidence=confidence,
+            reason=reason,
+            extracted_data={
+                "diagram": {
+                    "n_nodes": len(d.nodes),
+                    "n_edges": len(d.edges),
+                    "mermaid": d.mermaid,
+                    "nodes": [{"id": n.id, "label": n.label,
+                                 "shape": n.shape} for n in d.nodes],
+                    "edges": [{"src": e.src, "dst": e.dst,
+                                 "directed": e.directed,
+                                 "label": e.label} for e in d.edges],
+                }
+            },
+        )
+        return out, name
+
+    return None, ""
 
 
 def _ladder_for_unknown(mix: MixtureResult) -> List[FigureKind]:
@@ -119,16 +172,33 @@ def run_reflective_extraction(*,
                                 ocr_text: Optional[str] = None,
                                 max_retries: int = 1,
                                 max_fallbacks: int = 2,
+                                auto_ocr: bool = True,
                                 ) -> ReflectiveTrace:
     """Classify + extract with reflection. Always returns a trace.
 
     `result` may be None if no extractable kind was a good match
     (e.g. classified as PHOTO/MAP, which don't have geometric
     extractors).
+
+    ``auto_ocr`` (default True): if ``ocr_text`` is empty, OCR the
+    figure once via Tesseract and feed the result to BOTH the
+    Mixture classifier AND every chart extractor. Chart extractors
+    need axis labels to calibrate; without ocr_text they ALL return
+    NO_AXIS. This single fix is the difference between "0% real
+    figures extracted" and "useful extraction" on the corpus.
     """
     import time
     t0 = time.time()
     trace = ReflectiveTrace(image_path=str(image_path))
+
+    # 0. Auto-OCR if no text was supplied -- extractors need it.
+    if auto_ocr and (ocr_text is None or not ocr_text.strip()):
+        try:
+            import pytesseract
+            from PIL import Image
+            ocr_text = pytesseract.image_to_string(Image.open(image_path))
+        except Exception:
+            ocr_text = ocr_text or ""
 
     # 1. Mixture classification
     mix = classify_with_mixture(caption=caption or "",
