@@ -46,9 +46,36 @@ PROJECT_ROOT = ROOT.parent
 
 _TOKEN_RE = re.compile(r"[a-zA-Z0-9]+")
 
+# Common Unicode ligatures that pdftotext expands but pymupdf preserves
+# verbatim. We expand them at the normalisation step so the tokenizer
+# treats `classiﬁcation` the same way regardless of extractor.
+_LIGATURES = {
+    "\ufb00": "ff",   # ﬀ
+    "\ufb01": "fi",   # ﬁ
+    "\ufb02": "fl",   # ﬂ
+    "\ufb03": "ffi",  # ﬃ
+    "\ufb04": "ffl",  # ﬄ
+    "\ufb05": "ft",   # ﬅ
+    "\ufb06": "st",   # ﬆ
+    "\u0153": "oe",   # œ
+    "\u0152": "OE",   # Œ
+    "\u00e6": "ae",   # æ
+    "\u00c6": "AE",   # Æ
+}
+
+
+def expand_ligatures(text: str) -> str:
+    for c, repl in _LIGATURES.items():
+        if c in text:
+            text = text.replace(c, repl)
+    return text
+
 
 def normalise(text: str) -> str:
-    """Lowercase, collapse whitespace, drop control chars."""
+    """Lowercase, collapse whitespace, drop control chars,
+    expand Unicode ligatures (fi/fl/ffi/etc) so tokenizers don't
+    silently lose those words."""
+    text = expand_ligatures(text)
     text = text.lower()
     text = re.sub(r"[^\x20-\x7e\n]", " ", text)
     text = re.sub(r"\s+", " ", text)
@@ -204,12 +231,35 @@ def extract_pipeline_v2_with_reorder(pdf: Path) -> str:
         return f"__ERROR__: {type(e).__name__}: {e}"
 
 
+def extract_pipeline_v2_auto(pdf: Path) -> str:
+    """E2-style smart dispatcher: pdftotext per page, fall back to
+    pymupdf4llm on pages where pdftotext produces too little."""
+    try:
+        from pipeline_v2.text_extract import extract_text
+        return extract_text(pdf, mode="auto",
+                              rotation_fix=False).text  # rot fix off for speed
+    except Exception as e:
+        return f"__ERROR__: {type(e).__name__}: {e}"
+
+
+def extract_pipeline_v2_auto_rotfix(pdf: Path) -> str:
+    """Same as auto, but with rotation detection + correction first."""
+    try:
+        from pipeline_v2.text_extract import extract_text
+        return extract_text(pdf, mode="auto",
+                              rotation_fix=True).text
+    except Exception as e:
+        return f"__ERROR__: {type(e).__name__}: {e}"
+
+
 EXTRACTORS: List[Dict[str, Any]] = [
-    {"name": "pdftotext",          "fn": extract_pdftotext},
-    {"name": "pdftotext-stream",   "fn": extract_pdftotext_simple},
-    {"name": "pymupdf4llm",        "fn": extract_pymupdf4llm},
-    {"name": "pdf2md-postprocess", "fn": extract_pipeline_v2_text},
-    {"name": "pdf2md-reorder-e1",  "fn": extract_pipeline_v2_with_reorder},
+    {"name": "pdftotext",            "fn": extract_pdftotext},
+    {"name": "pdftotext-stream",     "fn": extract_pdftotext_simple},
+    {"name": "pymupdf4llm",          "fn": extract_pymupdf4llm},
+    {"name": "pdf2md-postprocess",   "fn": extract_pipeline_v2_text},
+    {"name": "pdf2md-reorder-e1",    "fn": extract_pipeline_v2_with_reorder},
+    {"name": "pdf2md-auto",          "fn": extract_pipeline_v2_auto},
+    {"name": "pdf2md-auto-rotfix",   "fn": extract_pipeline_v2_auto_rotfix},
 ]
 
 

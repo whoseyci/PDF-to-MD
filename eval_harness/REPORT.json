@@ -1,5 +1,260 @@
 [
   {
+    "arxiv_id": "0710.5491",
+    "gt_chars": 28910,
+    "gt_words": 4859,
+    "pdf_bytes": 393243,
+    "extractors": {
+      "pdftotext": {
+        "chars": 31650,
+        "words": 5534,
+        "char_ratio": 1.095,
+        "jaccard_words": 0.8603,
+        "wer_estimate": 0.0233,
+        "precision": 0.8835,
+        "recall": 0.9703,
+        "f1": 0.9249,
+        "elapsed_s": 0.08
+      },
+      "pdftotext-stream": {
+        "chars": 31628,
+        "words": 5523,
+        "char_ratio": 1.094,
+        "jaccard_words": 0.8797,
+        "wer_estimate": 0.022,
+        "precision": 0.9014,
+        "recall": 0.9734,
+        "f1": 0.936,
+        "elapsed_s": 0.08
+      },
+      "pymupdf4llm": {
+        "chars": 32620,
+        "words": 5570,
+        "char_ratio": 1.128,
+        "jaccard_words": 0.8565,
+        "wer_estimate": 0.035,
+        "precision": 0.8787,
+        "recall": 0.9713,
+        "f1": 0.9227,
+        "elapsed_s": 14.5
+      },
+      "pdf2md-postprocess": {
+        "chars": 32664,
+        "words": 5568,
+        "char_ratio": 1.13,
+        "jaccard_words": 0.8565,
+        "wer_estimate": 0.035,
+        "precision": 0.8787,
+        "recall": 0.9713,
+        "f1": 0.9227,
+        "elapsed_s": 14.24
+      },
+      "pdf2md-reorder-e1": {
+        "chars": 31518,
+        "words": 5492,
+        "char_ratio": 1.09,
+        "jaccard_words": 0.8756,
+        "wer_estimate": 0.0261,
+        "precision": 0.8979,
+        "recall": 0.9724,
+        "f1": 0.9337,
+        "elapsed_s": 0.12
+      },
+      "pdf2md-auto": {
+        "chars": 31628,
+        "words": 5523,
+        "char_ratio": 1.094,
+        "jaccard_words": 0.8797,
+        "wer_estimate": 0.022,
+        "precision": 0.9014,
+        "recall": 0.9734,
+        "f1": 0.936,
+        "elapsed_s": 0.28
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 31628,
+        "words": 5523,
+        "char_ratio": 1.094,
+        "jaccard_words": 0.8797,
+        "wer_estimate": 0.022,
+        "precision": 0.9014,
+        "recall": 0.9734,
+        "f1": 0.936,
+        "elapsed_s": 11.39
+      }
+    }
+  },
+  {
+    "arxiv_id": "0805.4452",
+    "gt_chars": 37043,
+    "gt_words": 6468,
+    "pdf_bytes": 121741,
+    "extractors": {
+      "pdftotext": {
+        "chars": 37650,
+        "words": 6666,
+        "char_ratio": 1.016,
+        "jaccard_words": 0.7852,
+        "wer_estimate": 0.1288,
+        "precision": 0.8204,
+        "recall": 0.9481,
+        "f1": 0.8797,
+        "elapsed_s": 0.05
+      },
+      "pdftotext-stream": {
+        "chars": 37614,
+        "words": 6648,
+        "char_ratio": 1.015,
+        "jaccard_words": 0.8016,
+        "wer_estimate": 0.1272,
+        "precision": 0.837,
+        "recall": 0.9498,
+        "f1": 0.8898,
+        "elapsed_s": 0.05
+      },
+      "pymupdf4llm": {
+        "chars": 39061,
+        "words": 6469,
+        "char_ratio": 1.054,
+        "jaccard_words": 0.788,
+        "wer_estimate": 0.1534,
+        "precision": 0.8326,
+        "recall": 0.9364,
+        "f1": 0.8814,
+        "elapsed_s": 3.29
+      },
+      "pdf2md-postprocess": {
+        "chars": 39061,
+        "words": 6469,
+        "char_ratio": 1.054,
+        "jaccard_words": 0.788,
+        "wer_estimate": 0.1534,
+        "precision": 0.8326,
+        "recall": 0.9364,
+        "f1": 0.8814,
+        "elapsed_s": 3.3
+      },
+      "pdf2md-reorder-e1": {
+        "chars": 37467,
+        "words": 6611,
+        "char_ratio": 1.011,
+        "jaccard_words": 0.7887,
+        "wer_estimate": 0.1299,
+        "precision": 0.8255,
+        "recall": 0.9464,
+        "f1": 0.8819,
+        "elapsed_s": 0.07
+      },
+      "pdf2md-auto": {
+        "chars": 37614,
+        "words": 6648,
+        "char_ratio": 1.015,
+        "jaccard_words": 0.8016,
+        "wer_estimate": 0.1272,
+        "precision": 0.837,
+        "recall": 0.9498,
+        "f1": 0.8898,
+        "elapsed_s": 0.25
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 37614,
+        "words": 6648,
+        "char_ratio": 1.015,
+        "jaccard_words": 0.8016,
+        "wer_estimate": 0.1272,
+        "precision": 0.837,
+        "recall": 0.9498,
+        "f1": 0.8898,
+        "elapsed_s": 11.88
+      }
+    }
+  },
+  {
+    "arxiv_id": "1209.3818",
+    "gt_chars": 21749,
+    "gt_words": 3770,
+    "pdf_bytes": 87306,
+    "extractors": {
+      "pdftotext": {
+        "chars": 23580,
+        "words": 4091,
+        "char_ratio": 1.084,
+        "jaccard_words": 0.7747,
+        "wer_estimate": 0.0326,
+        "precision": 0.7862,
+        "recall": 0.9815,
+        "f1": 0.873,
+        "elapsed_s": 0.03
+      },
+      "pdftotext-stream": {
+        "chars": 23552,
+        "words": 4077,
+        "char_ratio": 1.083,
+        "jaccard_words": 0.7965,
+        "wer_estimate": 0.0313,
+        "precision": 0.8066,
+        "recall": 0.9846,
+        "f1": 0.8867,
+        "elapsed_s": 0.03
+      },
+      "pymupdf4llm": {
+        "chars": 23482,
+        "words": 3977,
+        "char_ratio": 1.08,
+        "jaccard_words": 0.8043,
+        "wer_estimate": 0.0451,
+        "precision": 0.8114,
+        "recall": 0.9892,
+        "f1": 0.8915,
+        "elapsed_s": 1.89
+      },
+      "pdf2md-postprocess": {
+        "chars": 23482,
+        "words": 3977,
+        "char_ratio": 1.08,
+        "jaccard_words": 0.8043,
+        "wer_estimate": 0.0451,
+        "precision": 0.8114,
+        "recall": 0.9892,
+        "f1": 0.8915,
+        "elapsed_s": 1.86
+      },
+      "pdf2md-reorder-e1": {
+        "chars": 23486,
+        "words": 4047,
+        "char_ratio": 1.08,
+        "jaccard_words": 0.8023,
+        "wer_estimate": 0.0289,
+        "precision": 0.8093,
+        "recall": 0.9892,
+        "f1": 0.8903,
+        "elapsed_s": 0.03
+      },
+      "pdf2md-auto": {
+        "chars": 23552,
+        "words": 4077,
+        "char_ratio": 1.083,
+        "jaccard_words": 0.7965,
+        "wer_estimate": 0.0313,
+        "precision": 0.8066,
+        "recall": 0.9846,
+        "f1": 0.8867,
+        "elapsed_s": 0.07
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 23552,
+        "words": 4077,
+        "char_ratio": 1.083,
+        "jaccard_words": 0.7965,
+        "wer_estimate": 0.0313,
+        "precision": 0.8066,
+        "recall": 0.9846,
+        "f1": 0.8867,
+        "elapsed_s": 3.41
+      }
+    }
+  },
+  {
     "arxiv_id": "1312.6114",
     "gt_chars": 30868,
     "gt_words": 4710,
@@ -36,7 +291,7 @@
         "precision": 0.698,
         "recall": 0.9941,
         "f1": 0.8202,
-        "elapsed_s": 8.39
+        "elapsed_s": 7.79
       },
       "pdf2md-postprocess": {
         "chars": 47068,
@@ -47,18 +302,40 @@
         "precision": 0.698,
         "recall": 0.9941,
         "f1": 0.8202,
-        "elapsed_s": 7.75
+        "elapsed_s": 7.83
       },
       "pdf2md-reorder-e1": {
-        "chars": 41047,
-        "words": 7177,
-        "char_ratio": 1.33,
-        "jaccard_words": 0.633,
-        "wer_estimate": 0.0299,
-        "precision": 0.648,
-        "recall": 0.9647,
-        "f1": 0.7753,
+        "chars": 40904,
+        "words": 7052,
+        "char_ratio": 1.325,
+        "jaccard_words": 0.6974,
+        "wer_estimate": 0.0163,
+        "precision": 0.7003,
+        "recall": 0.9941,
+        "f1": 0.8218,
         "elapsed_s": 0.1
+      },
+      "pdf2md-auto": {
+        "chars": 41227,
+        "words": 7095,
+        "char_ratio": 1.336,
+        "jaccard_words": 0.6998,
+        "wer_estimate": 0.0163,
+        "precision": 0.7027,
+        "recall": 0.9941,
+        "f1": 0.8234,
+        "elapsed_s": 0.29
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 41227,
+        "words": 7095,
+        "char_ratio": 1.336,
+        "jaccard_words": 0.6998,
+        "wer_estimate": 0.0163,
+        "precision": 0.7027,
+        "recall": 0.9941,
+        "f1": 0.8234,
+        "elapsed_s": 12.09
       }
     }
   },
@@ -77,7 +354,7 @@
         "precision": 0.6265,
         "recall": 0.9791,
         "f1": 0.7641,
-        "elapsed_s": 0.08
+        "elapsed_s": 0.06
       },
       "pdftotext-stream": {
         "chars": 28957,
@@ -99,7 +376,7 @@
         "precision": 0.6417,
         "recall": 0.9901,
         "f1": 0.7787,
-        "elapsed_s": 5.1
+        "elapsed_s": 4.98
       },
       "pdf2md-postprocess": {
         "chars": 30856,
@@ -110,18 +387,125 @@
         "precision": 0.6417,
         "recall": 0.9901,
         "f1": 0.7787,
-        "elapsed_s": 4.92
+        "elapsed_s": 4.96
       },
       "pdf2md-reorder-e1": {
-        "chars": 28853,
-        "words": 4762,
-        "char_ratio": 1.641,
-        "jaccard_words": 0.589,
-        "wer_estimate": 0.0245,
-        "precision": 0.608,
-        "recall": 0.9495,
-        "f1": 0.7413,
-        "elapsed_s": 0.05
+        "chars": 28875,
+        "words": 4705,
+        "char_ratio": 1.643,
+        "jaccard_words": 0.6443,
+        "wer_estimate": 0.006,
+        "precision": 0.6474,
+        "recall": 0.9926,
+        "f1": 0.7837,
+        "elapsed_s": 0.06
+      },
+      "pdf2md-auto": {
+        "chars": 28957,
+        "words": 4691,
+        "char_ratio": 1.647,
+        "jaccard_words": 0.6362,
+        "wer_estimate": 0.0079,
+        "precision": 0.6418,
+        "recall": 0.9865,
+        "f1": 0.7777,
+        "elapsed_s": 0.18
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 28957,
+        "words": 4691,
+        "char_ratio": 1.647,
+        "jaccard_words": 0.6362,
+        "wer_estimate": 0.0079,
+        "precision": 0.6418,
+        "recall": 0.9865,
+        "f1": 0.7777,
+        "elapsed_s": 7.45
+      }
+    }
+  },
+  {
+    "arxiv_id": "1406.2661_scanned",
+    "gt_chars": 17579,
+    "gt_words": 2656,
+    "pdf_bytes": 25250030,
+    "extractors": {
+      "pdftotext": {
+        "chars": 0,
+        "words": 0,
+        "char_ratio": 0.0,
+        "jaccard_words": 0.0,
+        "wer_estimate": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "elapsed_s": 0.01
+      },
+      "pdftotext-stream": {
+        "chars": 0,
+        "words": 0,
+        "char_ratio": 0.0,
+        "jaccard_words": 0.0,
+        "wer_estimate": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "elapsed_s": 0.01
+      },
+      "pymupdf4llm": {
+        "chars": 13005,
+        "words": 2098,
+        "char_ratio": 0.74,
+        "jaccard_words": 0.5681,
+        "wer_estimate": 0.3724,
+        "precision": 0.7708,
+        "recall": 0.6835,
+        "f1": 0.7245,
+        "elapsed_s": 20.38
+      },
+      "pdf2md-postprocess": {
+        "chars": 13005,
+        "words": 2098,
+        "char_ratio": 0.74,
+        "jaccard_words": 0.5681,
+        "wer_estimate": 0.3724,
+        "precision": 0.7708,
+        "recall": 0.6835,
+        "f1": 0.7245,
+        "elapsed_s": 20.4
+      },
+      "pdf2md-reorder-e1": {
+        "chars": 0,
+        "words": 0,
+        "char_ratio": 0.0,
+        "jaccard_words": 0.0,
+        "wer_estimate": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "elapsed_s": 0.02
+      },
+      "pdf2md-auto": {
+        "chars": 13005,
+        "words": 2098,
+        "char_ratio": 0.74,
+        "jaccard_words": 0.5681,
+        "wer_estimate": 0.3724,
+        "precision": 0.7708,
+        "recall": 0.6835,
+        "f1": 0.7245,
+        "elapsed_s": 20.0
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 13005,
+        "words": 2098,
+        "char_ratio": 0.74,
+        "jaccard_words": 0.5681,
+        "wer_estimate": 0.3724,
+        "precision": 0.7708,
+        "recall": 0.6835,
+        "f1": 0.7245,
+        "elapsed_s": 23.84
       }
     }
   },
@@ -140,7 +524,7 @@
         "precision": 0.602,
         "recall": 0.9517,
         "f1": 0.7375,
-        "elapsed_s": 0.11
+        "elapsed_s": 0.07
       },
       "pdftotext-stream": {
         "chars": 49991,
@@ -162,7 +546,7 @@
         "precision": 0.6418,
         "recall": 0.9842,
         "f1": 0.777,
-        "elapsed_s": 5.38
+        "elapsed_s": 5.56
       },
       "pdf2md-postprocess": {
         "chars": 52590,
@@ -173,18 +557,40 @@
         "precision": 0.6418,
         "recall": 0.9842,
         "f1": 0.777,
-        "elapsed_s": 5.45
+        "elapsed_s": 5.78
       },
       "pdf2md-reorder-e1": {
-        "chars": 49779,
-        "words": 8575,
-        "char_ratio": 1.52,
-        "jaccard_words": 0.5953,
-        "wer_estimate": 0.0187,
-        "precision": 0.6111,
+        "chars": 49734,
+        "words": 8492,
+        "char_ratio": 1.519,
+        "jaccard_words": 0.6395,
+        "wer_estimate": 0.0072,
+        "precision": 0.6461,
+        "recall": 0.9842,
+        "f1": 0.7801,
+        "elapsed_s": 0.09
+      },
+      "pdf2md-auto": {
+        "chars": 49991,
+        "words": 8592,
+        "char_ratio": 1.526,
+        "jaccard_words": 0.6054,
+        "wer_estimate": 0.018,
+        "precision": 0.6218,
         "recall": 0.9582,
-        "f1": 0.7463,
-        "elapsed_s": 0.08
+        "f1": 0.7542,
+        "elapsed_s": 0.27
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 49991,
+        "words": 8592,
+        "char_ratio": 1.526,
+        "jaccard_words": 0.6054,
+        "wer_estimate": 0.018,
+        "precision": 0.6218,
+        "recall": 0.9582,
+        "f1": 0.7542,
+        "elapsed_s": 14.68
       }
     }
   },
@@ -225,7 +631,7 @@
         "precision": 0.8338,
         "recall": 0.9959,
         "f1": 0.9076,
-        "elapsed_s": 2.95
+        "elapsed_s": 3.15
       },
       "pdf2md-postprocess": {
         "chars": 33513,
@@ -236,18 +642,125 @@
         "precision": 0.8338,
         "recall": 0.9959,
         "f1": 0.9076,
-        "elapsed_s": 3.08
+        "elapsed_s": 3.1
       },
       "pdf2md-reorder-e1": {
-        "chars": 33661,
-        "words": 5859,
+        "chars": 33671,
+        "words": 5794,
         "char_ratio": 1.142,
-        "jaccard_words": 0.7592,
-        "wer_estimate": 0.0117,
-        "precision": 0.7766,
-        "recall": 0.9713,
-        "f1": 0.8631,
+        "jaccard_words": 0.8214,
+        "wer_estimate": 0.0006,
+        "precision": 0.8228,
+        "recall": 0.998,
+        "f1": 0.9019,
         "elapsed_s": 0.06
+      },
+      "pdf2md-auto": {
+        "chars": 33723,
+        "words": 5802,
+        "char_ratio": 1.144,
+        "jaccard_words": 0.8206,
+        "wer_estimate": 0.001,
+        "precision": 0.8226,
+        "recall": 0.9969,
+        "f1": 0.9014,
+        "elapsed_s": 0.23
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 33723,
+        "words": 5802,
+        "char_ratio": 1.144,
+        "jaccard_words": 0.8206,
+        "wer_estimate": 0.001,
+        "precision": 0.8226,
+        "recall": 0.9969,
+        "f1": 0.9014,
+        "elapsed_s": 9.32
+      }
+    }
+  },
+  {
+    "arxiv_id": "1503.02531_scanned",
+    "gt_chars": 29485,
+    "gt_words": 4961,
+    "pdf_bytes": 25250030,
+    "extractors": {
+      "pdftotext": {
+        "chars": 0,
+        "words": 0,
+        "char_ratio": 0.0,
+        "jaccard_words": 0.0,
+        "wer_estimate": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "elapsed_s": 0.02
+      },
+      "pdftotext-stream": {
+        "chars": 0,
+        "words": 0,
+        "char_ratio": 0.0,
+        "jaccard_words": 0.0,
+        "wer_estimate": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "elapsed_s": 0.01
+      },
+      "pymupdf4llm": {
+        "chars": 16458,
+        "words": 2806,
+        "char_ratio": 0.558,
+        "jaccard_words": 0.6449,
+        "wer_estimate": 0.4642,
+        "precision": 0.9153,
+        "recall": 0.6858,
+        "f1": 0.7841,
+        "elapsed_s": 23.94
+      },
+      "pdf2md-postprocess": {
+        "chars": 16458,
+        "words": 2806,
+        "char_ratio": 0.558,
+        "jaccard_words": 0.6449,
+        "wer_estimate": 0.4642,
+        "precision": 0.9153,
+        "recall": 0.6858,
+        "f1": 0.7841,
+        "elapsed_s": 23.35
+      },
+      "pdf2md-reorder-e1": {
+        "chars": 0,
+        "words": 0,
+        "char_ratio": 0.0,
+        "jaccard_words": 0.0,
+        "wer_estimate": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "elapsed_s": 0.01
+      },
+      "pdf2md-auto": {
+        "chars": 16458,
+        "words": 2806,
+        "char_ratio": 0.558,
+        "jaccard_words": 0.6449,
+        "wer_estimate": 0.4642,
+        "precision": 0.9153,
+        "recall": 0.6858,
+        "f1": 0.7841,
+        "elapsed_s": 23.8
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 16458,
+        "words": 2806,
+        "char_ratio": 0.558,
+        "jaccard_words": 0.6449,
+        "wer_estimate": 0.4642,
+        "precision": 0.9153,
+        "recall": 0.6858,
+        "f1": 0.7841,
+        "elapsed_s": 27.08
       }
     }
   },
@@ -266,7 +779,7 @@
         "precision": 0.6419,
         "recall": 0.9689,
         "f1": 0.7722,
-        "elapsed_s": 0.1
+        "elapsed_s": 0.09
       },
       "pdftotext-stream": {
         "chars": 58958,
@@ -288,7 +801,7 @@
         "precision": 0.702,
         "recall": 0.9874,
         "f1": 0.8206,
-        "elapsed_s": 8.31
+        "elapsed_s": 8.08
       },
       "pdf2md-postprocess": {
         "chars": 62756,
@@ -299,18 +812,40 @@
         "precision": 0.702,
         "recall": 0.9874,
         "f1": 0.8206,
-        "elapsed_s": 8.15
+        "elapsed_s": 8.1
       },
       "pdf2md-reorder-e1": {
-        "chars": 59138,
-        "words": 10712,
-        "char_ratio": 1.46,
-        "jaccard_words": 0.6026,
-        "wer_estimate": 0.034,
-        "precision": 0.6247,
-        "recall": 0.9444,
-        "f1": 0.752,
+        "chars": 58980,
+        "words": 10493,
+        "char_ratio": 1.456,
+        "jaccard_words": 0.6993,
+        "wer_estimate": 0.0087,
+        "precision": 0.706,
+        "recall": 0.9865,
+        "f1": 0.823,
         "elapsed_s": 0.08
+      },
+      "pdf2md-auto": {
+        "chars": 58958,
+        "words": 10484,
+        "char_ratio": 1.456,
+        "jaccard_words": 0.7068,
+        "wer_estimate": 0.0084,
+        "precision": 0.7128,
+        "recall": 0.9882,
+        "f1": 0.8282,
+        "elapsed_s": 0.25
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 58958,
+        "words": 10484,
+        "char_ratio": 1.456,
+        "jaccard_words": 0.7068,
+        "wer_estimate": 0.0084,
+        "precision": 0.7128,
+        "recall": 0.9882,
+        "f1": 0.8282,
+        "elapsed_s": 10.35
       }
     }
   },
@@ -351,7 +886,7 @@
         "precision": 0.9038,
         "recall": 0.987,
         "f1": 0.9435,
-        "elapsed_s": 6.36
+        "elapsed_s": 6.38
       },
       "pdf2md-postprocess": {
         "chars": 42083,
@@ -362,18 +897,40 @@
         "precision": 0.9038,
         "recall": 0.987,
         "f1": 0.9435,
-        "elapsed_s": 6.49
+        "elapsed_s": 6.44
       },
       "pdf2md-reorder-e1": {
-        "chars": 39389,
+        "chars": 39453,
         "words": 6461,
-        "char_ratio": 1.114,
-        "jaccard_words": 0.8842,
+        "char_ratio": 1.116,
+        "jaccard_words": 0.8922,
         "wer_estimate": 0.0383,
-        "precision": 0.8953,
-        "recall": 0.9863,
-        "f1": 0.9386,
-        "elapsed_s": 0.12
+        "precision": 0.9011,
+        "recall": 0.989,
+        "f1": 0.943,
+        "elapsed_s": 0.13
+      },
+      "pdf2md-auto": {
+        "chars": 39497,
+        "words": 6460,
+        "char_ratio": 1.117,
+        "jaccard_words": 0.8883,
+        "wer_estimate": 0.0401,
+        "precision": 0.8977,
+        "recall": 0.9883,
+        "f1": 0.9408,
+        "elapsed_s": 0.4
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 39497,
+        "words": 6460,
+        "char_ratio": 1.117,
+        "jaccard_words": 0.8883,
+        "wer_estimate": 0.0401,
+        "precision": 0.8977,
+        "recall": 0.9883,
+        "f1": 0.9408,
+        "elapsed_s": 12.35
       }
     }
   },
@@ -392,7 +949,7 @@
         "precision": 0.4986,
         "recall": 0.9326,
         "f1": 0.6498,
-        "elapsed_s": 0.09
+        "elapsed_s": 0.08
       },
       "pdftotext-stream": {
         "chars": 63419,
@@ -414,7 +971,7 @@
         "precision": 0.5674,
         "recall": 0.9693,
         "f1": 0.7158,
-        "elapsed_s": 13.03
+        "elapsed_s": 12.97
       },
       "pdf2md-postprocess": {
         "chars": 66713,
@@ -425,18 +982,125 @@
         "precision": 0.5674,
         "recall": 0.9693,
         "f1": 0.7158,
-        "elapsed_s": 12.77
+        "elapsed_s": 12.87
       },
       "pdf2md-reorder-e1": {
-        "chars": 63843,
-        "words": 10915,
-        "char_ratio": 1.474,
-        "jaccard_words": 0.4653,
-        "wer_estimate": 0.0637,
-        "precision": 0.4864,
-        "recall": 0.9147,
-        "f1": 0.6351,
-        "elapsed_s": 0.09
+        "chars": 63451,
+        "words": 10538,
+        "char_ratio": 1.465,
+        "jaccard_words": 0.565,
+        "wer_estimate": 0.0301,
+        "precision": 0.5756,
+        "recall": 0.9684,
+        "f1": 0.722,
+        "elapsed_s": 0.1
+      },
+      "pdf2md-auto": {
+        "chars": 63419,
+        "words": 10555,
+        "char_ratio": 1.464,
+        "jaccard_words": 0.5689,
+        "wer_estimate": 0.0298,
+        "precision": 0.5797,
+        "recall": 0.9684,
+        "f1": 0.7252,
+        "elapsed_s": 0.31
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 63419,
+        "words": 10555,
+        "char_ratio": 1.464,
+        "jaccard_words": 0.5689,
+        "wer_estimate": 0.0298,
+        "precision": 0.5797,
+        "recall": 0.9684,
+        "f1": 0.7252,
+        "elapsed_s": 14.24
+      }
+    }
+  },
+  {
+    "arxiv_id": "1907.05047",
+    "gt_chars": 12408,
+    "gt_words": 1937,
+    "pdf_bytes": 301354,
+    "extractors": {
+      "pdftotext": {
+        "chars": 15417,
+        "words": 2584,
+        "char_ratio": 1.243,
+        "jaccard_words": 0.7473,
+        "wer_estimate": 0.0284,
+        "precision": 0.7621,
+        "recall": 0.9746,
+        "f1": 0.8554,
+        "elapsed_s": 0.03
+      },
+      "pdftotext-stream": {
+        "chars": 15305,
+        "words": 2528,
+        "char_ratio": 1.233,
+        "jaccard_words": 0.8156,
+        "wer_estimate": 0.0145,
+        "precision": 0.8262,
+        "recall": 0.9845,
+        "f1": 0.8985,
+        "elapsed_s": 0.03
+      },
+      "pymupdf4llm": {
+        "chars": 15856,
+        "words": 2530,
+        "char_ratio": 1.278,
+        "jaccard_words": 0.8282,
+        "wer_estimate": 0.015,
+        "precision": 0.8391,
+        "recall": 0.9845,
+        "f1": 0.906,
+        "elapsed_s": 10.44
+      },
+      "pdf2md-postprocess": {
+        "chars": 16125,
+        "words": 2495,
+        "char_ratio": 1.3,
+        "jaccard_words": 0.8292,
+        "wer_estimate": 0.015,
+        "precision": 0.8401,
+        "recall": 0.9845,
+        "f1": 0.9066,
+        "elapsed_s": 10.5
+      },
+      "pdf2md-reorder-e1": {
+        "chars": 15303,
+        "words": 2525,
+        "char_ratio": 1.233,
+        "jaccard_words": 0.8147,
+        "wer_estimate": 0.0145,
+        "precision": 0.8253,
+        "recall": 0.9845,
+        "f1": 0.8979,
+        "elapsed_s": 0.02
+      },
+      "pdf2md-auto": {
+        "chars": 15305,
+        "words": 2528,
+        "char_ratio": 1.233,
+        "jaccard_words": 0.8156,
+        "wer_estimate": 0.0145,
+        "precision": 0.8262,
+        "recall": 0.9845,
+        "f1": 0.8985,
+        "elapsed_s": 0.07
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 15305,
+        "words": 2528,
+        "char_ratio": 1.233,
+        "jaccard_words": 0.8156,
+        "wer_estimate": 0.0145,
+        "precision": 0.8262,
+        "recall": 0.9845,
+        "f1": 0.8985,
+        "elapsed_s": 3.53
       }
     }
   },
@@ -477,7 +1141,7 @@
         "precision": 0.5338,
         "recall": 0.9529,
         "f1": 0.6843,
-        "elapsed_s": 6.93
+        "elapsed_s": 6.8
       },
       "pdf2md-postprocess": {
         "chars": 64225,
@@ -488,18 +1152,40 @@
         "precision": 0.5338,
         "recall": 0.9529,
         "f1": 0.6843,
-        "elapsed_s": 6.9
+        "elapsed_s": 6.7
       },
       "pdf2md-reorder-e1": {
-        "chars": 60074,
-        "words": 10488,
-        "char_ratio": 1.639,
-        "jaccard_words": 0.479,
-        "wer_estimate": 0.0758,
-        "precision": 0.4965,
-        "recall": 0.9316,
-        "f1": 0.6477,
-        "elapsed_s": 0.09
+        "chars": 60037,
+        "words": 10323,
+        "char_ratio": 1.638,
+        "jaccard_words": 0.5237,
+        "wer_estimate": 0.0587,
+        "precision": 0.5348,
+        "recall": 0.9618,
+        "f1": 0.6874,
+        "elapsed_s": 0.1
+      },
+      "pdf2md-auto": {
+        "chars": 60063,
+        "words": 10385,
+        "char_ratio": 1.638,
+        "jaccard_words": 0.5126,
+        "wer_estimate": 0.0633,
+        "precision": 0.5249,
+        "recall": 0.9565,
+        "f1": 0.6778,
+        "elapsed_s": 0.33
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 60063,
+        "words": 10385,
+        "char_ratio": 1.638,
+        "jaccard_words": 0.5126,
+        "wer_estimate": 0.0633,
+        "precision": 0.5249,
+        "recall": 0.9565,
+        "f1": 0.6778,
+        "elapsed_s": 14.99
       }
     }
   },
@@ -540,7 +1226,7 @@
         "precision": 0.748,
         "recall": 0.9923,
         "f1": 0.853,
-        "elapsed_s": 74.89
+        "elapsed_s": 83.58
       },
       "pdf2md-postprocess": {
         "chars": 252915,
@@ -551,18 +1237,40 @@
         "precision": 0.748,
         "recall": 0.9923,
         "f1": 0.853,
-        "elapsed_s": 75.53
+        "elapsed_s": 76.4
       },
       "pdf2md-reorder-e1": {
-        "chars": 235714,
-        "words": 41820,
-        "char_ratio": 1.027,
-        "jaccard_words": 0.7202,
-        "wer_estimate": 0.0174,
-        "precision": 0.7323,
-        "recall": 0.9775,
-        "f1": 0.8373,
-        "elapsed_s": 0.4
+        "chars": 236319,
+        "words": 41566,
+        "char_ratio": 1.03,
+        "jaccard_words": 0.7427,
+        "wer_estimate": 0.0059,
+        "precision": 0.7462,
+        "recall": 0.9937,
+        "f1": 0.8524,
+        "elapsed_s": 0.42
+      },
+      "pdf2md-auto": {
+        "chars": 236540,
+        "words": 41572,
+        "char_ratio": 1.031,
+        "jaccard_words": 0.7437,
+        "wer_estimate": 0.0061,
+        "precision": 0.7469,
+        "recall": 0.9944,
+        "f1": 0.853,
+        "elapsed_s": 1.46
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 236540,
+        "words": 41572,
+        "char_ratio": 1.031,
+        "jaccard_words": 0.7437,
+        "wer_estimate": 0.0061,
+        "precision": 0.7469,
+        "recall": 0.9944,
+        "f1": 0.853,
+        "elapsed_s": 63.16
       }
     }
   },
@@ -581,7 +1289,7 @@
         "precision": 0.5708,
         "recall": 0.9861,
         "f1": 0.7231,
-        "elapsed_s": 0.16
+        "elapsed_s": 0.15
       },
       "pdftotext-stream": {
         "chars": 67051,
@@ -603,7 +1311,7 @@
         "precision": 0.5703,
         "recall": 0.9954,
         "f1": 0.7251,
-        "elapsed_s": 22.48
+        "elapsed_s": 22.58
       },
       "pdf2md-postprocess": {
         "chars": 71665,
@@ -614,18 +1322,40 @@
         "precision": 0.5703,
         "recall": 0.9954,
         "f1": 0.7251,
-        "elapsed_s": 22.65
+        "elapsed_s": 23.24
       },
       "pdf2md-reorder-e1": {
-        "chars": 66861,
-        "words": 11737,
-        "char_ratio": 1.684,
-        "jaccard_words": 0.5606,
-        "wer_estimate": 0.0183,
-        "precision": 0.5713,
-        "recall": 0.9676,
-        "f1": 0.7184,
-        "elapsed_s": 0.15
+        "chars": 66945,
+        "words": 11618,
+        "char_ratio": 1.686,
+        "jaccard_words": 0.6033,
+        "wer_estimate": 0.0016,
+        "precision": 0.6047,
+        "recall": 0.9961,
+        "f1": 0.7526,
+        "elapsed_s": 0.18
+      },
+      "pdf2md-auto": {
+        "chars": 67051,
+        "words": 11692,
+        "char_ratio": 1.688,
+        "jaccard_words": 0.5839,
+        "wer_estimate": 0.0051,
+        "precision": 0.5871,
+        "recall": 0.9907,
+        "f1": 0.7373,
+        "elapsed_s": 0.68
+      },
+      "pdf2md-auto-rotfix": {
+        "chars": 67051,
+        "words": 11692,
+        "char_ratio": 1.688,
+        "jaccard_words": 0.5839,
+        "wer_estimate": 0.0051,
+        "precision": 0.5871,
+        "recall": 0.9907,
+        "f1": 0.7373,
+        "elapsed_s": 21.56
       }
     }
   }

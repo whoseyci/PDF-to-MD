@@ -32,31 +32,46 @@ python3 -m eval_harness.run_eval
 # → eval_harness/REPORT.md + REPORT.json
 ```
 
-**Results on 10 papers (June 2026):**
+**Results on 16 papers (June 2026, includes 2 synthetic scanned PDFs
++ 5 non-ML domains):**
 
 | Extractor | avg F1 | avg WER* | avg s |
 |-----------|--------|----------|-------|
-| pdftotext            | 0.777 | 0.024 | 0.11  |
-| pdftotext-stream     | 0.802 | 0.020 | 0.10  |
-| pymupdf4llm          | 0.803 | 0.019 | 15.4  |
-| pdf2md-postprocess   | 0.803 | 0.019 | 15.4  |
-| pdf2md-reorder-e1    | 0.766 | 0.033 | 0.12  |
+| pdftotext             | 0.706 | 0.153 | 0.07 |
+| pdftotext-stream      | 0.727 | 0.149 | 0.07 |
+| pymupdf4llm           | 0.821 | 0.080 | 14.8 |
+| pdf2md-postprocess    | 0.821 | 0.080 | 14.3 |
+| pdf2md-reorder-e1     | 0.729 | 0.148 | 0.10 |
+| **pdf2md-auto** ⭐    | **0.821** | **0.077** | **3.0** |
+| pdf2md-auto-rotfix    | 0.821 | 0.077 | 16.3 |
 
-### What this told us (honest)
+### What this told us (honest, after fixing two harness bugs)
 
-* **Our postprocess adds 0 word-set F1 over pymupdf4llm** — the
-  postprocessing rearranges, it doesn't add or lose words. Fine,
-  expected; structure ≠ fidelity.
-* **Our E1 reading-order pass is actively worse** (F1 0.766 vs 0.802
-  for pdftotext-stream). Likely cause: column reassignment is
-  dropping some text blocks at column boundaries. **This is the kind
-  of thing the harness exists to catch.**
-* **pdftotext is ~150× faster and only 0.001 F1 behind pymupdf4llm**
-  on these PDFs. For pure-text use cases we shouldn't claim to need
-  pymupdf4llm.
-* WER* values (1.9-3.3%) are all small because the proxy uses a
-  sorted-bag walk, not a true edit distance. The values are
-  monotone-comparable, not absolute.
+* **The new smart dispatcher (`pdf2md-auto`) ties pymupdf4llm
+  quality at ~5× the speed.** It tries pdftotext per page,
+  falls back to pymupdf4llm only when pdftotext returns < 100
+  chars on a page. Most pages don't need the fallback, so we
+  pay near-zero cost.
+* **On scanned PDFs (1503.02531_scanned, 1406.2661_scanned):**
+  pdftotext alone returns F1=0.000 (no extractable text).
+  The dispatcher routes those pages to pymupdf4llm which OCRs
+  via Tesseract and recovers F1=0.78. The harness now actively
+  tests this critical fallback path.
+* **E1 reading-order pass: was actively worse, now tied with
+  pdftotext-stream.** Two bugs fixed:
+   1. The harness tokenizer didn't expand Unicode ligatures
+      (`ﬁ` → `fi`), so any extractor that preserved the glyph
+      lost the word inventory comparison. Fix: `expand_ligatures()`
+      in `run_eval.py`. This single fix moved pymupdf4llm-side
+      F1 from 0.803 to 0.821 on the original 10 papers.
+   2. E1 itself didn't dehyphenate line-end breaks
+      (`configura-\ntion`). Fix in `pipeline_v2/reading_order.py`.
+* **Rotation-fix adds ~13s/paper** (Tesseract OSD on every page).
+  On these born-digital arXiv papers it doesn't help (F1 unchanged
+  at 0.821), so it's off by default in the auto dispatcher. Turn on
+  with `text_extract(pdf, rotation_fix=True)` when you suspect
+  rotated scans. Synthetic F04 rotated-PDF test in the failure
+  catalog DOES need it.
 
 ### Caveats
 

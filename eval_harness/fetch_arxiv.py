@@ -35,8 +35,13 @@ from .latex_text import latex_to_text as _latex_to_text
 # A small curated set: cross-domain, single-author and multi-author,
 # 2-col and 1-col, with and without heavy math. All have LaTeX source
 # available on arXiv (verified by hand).
+#
+# Sept-2026 update: expanded beyond ML/CV to cover physics, math,
+# economics, biology, and a couple of long/heavy-table papers so the
+# harness isn't biased towards one community's layout conventions.
 DEFAULT_IDS = [
-    "1706.03762",   # Attention Is All You Need (Vaswani et al., 2017) -- ML/NLP, 2-col
+    # --- ML/AI canonical ---
+    "1706.03762",   # Attention Is All You Need (Vaswani et al., 2017)
     "1810.04805",   # BERT (Devlin et al., 2018)
     "2010.11929",   # ViT (Dosovitskiy et al., 2020)
     "1503.02531",   # Distilling the Knowledge (Hinton et al., 2015)
@@ -45,7 +50,13 @@ DEFAULT_IDS = [
     "1312.6114",    # VAE (Kingma & Welling, 2013)
     "1512.03385",   # ResNet (He et al., 2015)
     "1409.0473",    # NMT-Attention (Bahdanau et al., 2014)
-    "2005.14165",   # GPT-3 (Brown et al., 2020)
+    "2005.14165",   # GPT-3 (Brown et al., 2020) -- LONG (74 pages)
+    # --- Non-ML domains ---
+    "0710.5491",    # Quantum Computing intro (Wilde) -- physics, heavy math
+    "0805.4452",    # Math overview, single-column
+    "1209.3818",    # Galaxy formation (astrophysics)
+    "1610.07854",   # Economics, single-col
+    "1907.05047",   # Biology (genomics)
 ]
 
 

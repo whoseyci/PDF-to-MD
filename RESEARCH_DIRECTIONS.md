@@ -337,6 +337,10 @@ Given the cost/value tradeoffs:
 | 7    | **E3** PDFigCapX caption pairing     | 2        | Fixes the side-by-side caption breakage on MDPI etc.   | ✅ negative-space algorithm; **367/405 = 90.6% paired** corpus-wide |
 | 8    | **E5** pix2tex equations             | 0.5      | Niche but high-confidence for STEM papers              | ✅ wrapper shipped; opt-in via `pip install pix2tex` |
 | 9    | **E2** Low-confidence page re-OCR    | 0.5      | Rescues garbled / scanned pages without dropping content | ✅ shipped as `pipeline_v2/gemma_ocr.py` (reuses existing Gemma 4 backend instead of adding DeepSeek-OCR — see R2 above for rationale) |
+| 10   | **NEW** Smart text-extract dispatcher | 0.5     | pdftotext + per-page pymupdf4llm fallback; ~5× faster than pymupdf4llm at equal F1 | ✅ shipped as `pipeline_v2/text_extract.py` |
+| 11   | **NEW** Rotation auto-correct        | 0.5      | Detects mis-rotated scans via Tesseract OSD, patches page-rotation flag | ✅ shipped as `pipeline_v2/rotation_fix.py` |
+| 12   | **NEW** DeepSeek-OCR grounding plugin | 1-2     | Opt-in; replaces caption-pairing's negative-space heuristic with VLM-derived bboxes | 📋 documented in `RESEARCH_NOTES_LATEST.md` §1 — not shipped (needs CUDA + 6GB weights) |
+| 13   | **NEW** Cross-extractor validator agent | 1     | When two extractors disagree, picks the more confident one. No LLM call required | 📋 documented in `RESEARCH_NOTES_LATEST.md` §2 |
 
 ### What's still loose
 

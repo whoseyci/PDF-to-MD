@@ -138,23 +138,50 @@ python3 -m eval_harness.failure_modes     # → FAILURE_REPORT.md
 python3 -m pipeline_v2.corpus_browser     # → output/index.html
 ```
 
-**Numbers (June 2026, 10 arXiv papers, F1 vs LaTeX-rendered text):**
+**Numbers (June 2026, 16 arXiv papers + 2 synthetic scanned PDFs):**
 
 | Extractor | avg F1 | avg WER\* | avg s |
 |-----------|--------|-----------|-------|
-| pdftotext            | 0.777 | 0.024 | 0.11 |
-| pdftotext-stream     | 0.802 | 0.020 | 0.10 |
-| pymupdf4llm          | **0.803** | **0.019** | 15.4 |
-| pdf2md-postprocess   | **0.803** | **0.019** | 15.4 |
-| pdf2md-reorder-e1    | 0.766 | 0.033 | 0.12 |
+| pdftotext             | 0.706 | 0.153 | 0.07 |
+| pdftotext-stream      | 0.727 | 0.149 | 0.07 |
+| pymupdf4llm           | 0.821 | 0.080 | 14.8 |
+| pdf2md-postprocess    | 0.821 | 0.080 | 14.3 |
+| pdf2md-reorder-e1     | 0.729 | 0.148 | 0.10 |
+| **pdf2md-auto** ⭐    | **0.821** | **0.077** | **3.0** |
+| pdf2md-auto-rotfix    | 0.821 | 0.077 | 16.3 |
 
-Two honest findings worth highlighting:
-* Our `pdf2md-postprocess` adds zero word-set F1 over raw `pymupdf4llm`
-  — postprocessing rearranges, it doesn't change the word inventory.
-* Our E1 reading-order pass is **actively worse** (F1 -0.04 vs
-  pdftotext-stream) on born-digital arXiv papers, suggesting the
-  column-reassignment is dropping content. The harness exists to
-  catch exactly this kind of regression.
+* **`pdf2md-auto` (the new default) matches pymupdf4llm quality at
+  ~5× the speed** — uses pdftotext per page, falls back to
+  pymupdf4llm only when a page has < 100 chars.
+* **On scanned PDFs**: pdftotext alone returns F1=0.000;
+  `pdf2md-auto` correctly routes to pymupdf4llm OCR and recovers
+  F1=0.78. The fallback path is now actively exercised by the
+  harness (synthetic scanned versions of 2 of the arXiv papers).
+* E1 reading-order was previously worse than baseline — that turned
+  out to be **two bugs**: our metric didn't expand Unicode
+  ligatures (`ﬁ` → `fi`), penalising any extractor that preserved
+  the glyph; and E1 itself didn't dehyphenate line-end breaks.
+  Both fixed; E1 now matches `pdftotext-stream` (and runs at the
+  same speed).
+
+## New text-extraction CLI
+
+```bash
+# Smart dispatcher (now the recommended default for text-only use)
+python3 -m pipeline_v2.text_extract paper.pdf
+python3 -m pipeline_v2.text_extract paper.pdf --mode auto --stats
+python3 -m pipeline_v2.text_extract paper.pdf --mode reorder    # E1
+python3 -m pipeline_v2.text_extract paper.pdf --mode pdftotext  # fastest
+
+# Rotation detection / correction
+python3 -m pipeline_v2.rotation_fix paper.pdf
+python3 -m pipeline_v2.rotation_fix paper.pdf --apply --out fixed.pdf
+```
+
+Note: `pipeline_v2/convert.py` (the full pipeline) still uses
+`pymupdf4llm` end-to-end because it needs per-page chunks with
+inline figure extraction. The smart dispatcher is best used when you
+just want text (e.g. for indexing / RAG / search).
 
 ## Research-track features (E1–E9, all shipped)
 

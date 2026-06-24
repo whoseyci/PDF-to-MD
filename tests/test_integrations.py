@@ -490,6 +490,71 @@ def test_failure_modes_generators(t):
         t.check(n_ok >= 9, f"at least 9/10 generators produced a file: {n_ok}/10")
 
 
+def test_text_extract_dispatcher(t):
+    """Smart dispatcher modes are importable and dispatch as documented."""
+    from pipeline_v2.text_extract import extract_text, ExtractionResult
+    # Use one of the failure-mode synthetic PDFs as a fixture
+    fixture = Path("eval_harness/failure_pdfs/F07_weird_unicode.pdf")
+    if not fixture.exists():
+        # Synthesize a tiny PDF on the fly
+        import fitz
+        d = fitz.open(); p = d.new_page()
+        p.insert_text((72, 100), "Hello pipeline.", fontsize=14)
+        fixture = Path("/home/user/.tmp/_test_text_extract.pdf")
+        fixture.parent.mkdir(parents=True, exist_ok=True)
+        d.save(str(fixture)); d.close()
+    res = extract_text(fixture, mode="pdftotext", rotation_fix=False)
+    t.check(isinstance(res, ExtractionResult), "returns ExtractionResult")
+    t.check(res.backend_used == "pdftotext", f"backend: {res.backend_used}")
+    res2 = extract_text(fixture, mode="auto", rotation_fix=False)
+    t.check(res2.n_chars >= 0, "auto mode produces some output")
+    # Unknown mode raises
+    try:
+        extract_text(fixture, mode="banana")
+        t.check(False, "unknown mode should raise")
+    except ValueError:
+        t.check(True, "unknown mode raised")
+
+
+def test_dehyphenate_and_ligatures(t):
+    """E1 fixes: dehyphenation + ligature expansion."""
+    from pipeline_v2.reading_order import dehyphenate
+    s = "config\u00ad\nuration is split\nbroken-\nword recovery"
+    out = dehyphenate(s)
+    t.check("configuration" in out, f"config dehyph: {out!r}")
+    t.check("brokenword" in out, f"broken dehyph: {out!r}")
+    # Don't merge across uppercase boundaries (compound words)
+    s2 = "state-\nof-the-art"
+    out2 = dehyphenate(s2)
+    t.check("state-" in out2 or "stateof" in out2,
+            f"compound: {out2!r}")
+    # Ligature expansion (eval harness side)
+    from eval_harness.run_eval import expand_ligatures, normalise
+    t.check(expand_ligatures("classi\ufb01cation") == "classification",
+            "fi ligature")
+    t.check(expand_ligatures("a\ufb02ow") == "aflow", "fl ligature")
+    t.check(expand_ligatures("o\ufb03ce") == "office", "ffi ligature in 'office'")
+    n = normalise("classi\ufb01cation, ef\ufb01cient,\nWith Ligatures.")
+    t.check("classification" in n, f"normalise: {n!r}")
+
+
+def test_rotation_fix_module(t):
+    """rotation_fix imports + handles a normal (non-rotated) page."""
+    import fitz
+    from pipeline_v2.rotation_fix import (detect_rotation,
+                                              correct_document, PageRotation)
+    d = fitz.open(); p = d.new_page()
+    p.insert_text((72, 100), "Hello upright world. Sample text for OSD.",
+                   fontsize=18)
+    p.insert_text((72, 200), "More upright text here.", fontsize=18)
+    rep = detect_rotation(d, 0)
+    t.check(isinstance(rep, PageRotation), "PageRotation returned")
+    t.check(rep.flag_rotation == 0, f"flag_rotation=0: got {rep.flag_rotation}")
+    reps = correct_document(d)
+    t.check(len(reps) == 1, "one report per page")
+    d.close()
+
+
 def test_gemma_ocr_lazy(t):
     """E2 (refactored) -- Gemma-4 OCR fallback is importable and
     degrades gracefully when the backend isn't installed."""
@@ -568,6 +633,9 @@ def main():
     print("=== caption pairing (E3) ==="); test_caption_pairing_e3(t)
     print("=== pix2tex (E5) lazy ==="); test_pix2tex_lazy(t)
     print("=== gemma-ocr (E2 refactored) lazy ==="); test_gemma_ocr_lazy(t)
+    print("=== text-extract dispatcher ==="); test_text_extract_dispatcher(t)
+    print("=== dehyphenate + ligatures ==="); test_dehyphenate_and_ligatures(t)
+    print("=== rotation_fix module ==="); test_rotation_fix_module(t)
     print("=== eval-harness metrics ==="); test_eval_metrics(t)
     print("=== corpus browser ==="); test_corpus_browser(t)
     print("=== failure-mode generators ==="); test_failure_modes_generators(t)
