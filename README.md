@@ -253,6 +253,32 @@ Without-caption reflective extraction went from **50% → 78.6%** on
 the synthetic bench after these fixes. With-caption performance
 unchanged (already at 86%, capped by extractor quality).
 
+### Round 3 specialist polish (Sep 2026)
+
+Six more accuracy fixes layered on top:
+
+* **Tick-mark requirement for axis detection** — `has_chart_axes`
+  now requires at least 4 tick marks across the candidate axes,
+  not just a rectangular frame. Pie charts (which have a rectangle
+  but no ticks) correctly classified as no-axes again.
+* **All-strong-lines scan** instead of just the longest — box-plot
+  spines now correctly identify the bottom-x-axis (where ticks live)
+  instead of just the top spine.
+* **Multipanel detection** — finds 2×2/3×3 sub-plot grids via
+  whitespace-gap analysis, but ONLY when BOTH dimensions split
+  (so single-axis bar charts don't false-positive).
+* **Decorative specialist + early-exit** — figures classified as
+  `DECORATIVE` (thin banners, tiny logos, monochrome no-structure)
+  skip extractor pipeline entirely. Saves time on the 7% of corpus
+  figures that aren't really data figures.
+* **Equation routing** — `EQUATION` kind dispatches to
+  `equation_extract` (pix2tex when installed), wrapped in a
+  ChartExtractionResult for the reflector loop.
+* **Cross-caption mentions** — when a caption like "Fig 3. Same as
+  Fig 2 but for..." references another figure number, it counts as
+  a mention on the referenced figure. Corpus: 161 → **176** figures
+  with at least one mention (+9% absolute).
+
 ## Research-track features (E1–E9, all shipped)
 
 All 9 experiments proposed in `RESEARCH_DIRECTIONS.md` are now

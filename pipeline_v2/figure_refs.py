@@ -132,13 +132,26 @@ def extract_sentence(text: str, pos: int) -> str:
 # ----------------------------------------------------------------------
 
 def link_figures(paper: Dict[str, Any], md_text: str,
-                 max_context_chars: int = 280) -> Dict[str, Any]:
-    """Mutate ``paper`` in place, attaching ``referenced_in`` lists."""
+                 max_context_chars: int = 280,
+                 rescue_orphans: bool = True) -> Dict[str, Any]:
+    """Mutate ``paper`` in place, attaching ``referenced_in`` lists.
+
+    When ``rescue_orphans=True`` (default), body mentions that don't
+    match a captioned figure are rescued via fig-id mapping: if the
+    extractor named the images sequentially (fig-001..fig-NNN), we
+    assume those IDs map to "Figure 1..N" in the body. This handles
+    the common case where the caption-pairing step missed some
+    figures but the body still references them.
+
+    Orphan-rescue is conservative: it only fires when the figure
+    record has NO caption_number (i.e. it's a placeholder), so we
+    never overwrite a confident caption-number link.
+    """
     figs = paper.get("figures") or []
     if not figs:
         return paper
 
-    # Build {fig_number: figure_record}
+    # Build {fig_number: figure_record} from caption_number first
     by_num: Dict[int, Dict[str, Any]] = {}
     for f in figs:
         n_raw = f.get("caption_number")
@@ -148,8 +161,23 @@ def link_figures(paper: Dict[str, Any], md_text: str,
             n = int(re.match(r"\d+", str(n_raw)).group(0))
         except Exception:
             continue
-        by_num.setdefault(n, []).append(f) if False else None  # noqa
         by_num[n] = f
+
+    # ALSO build a fallback index from fig-NNN ids (orphan rescue).
+    # Only fill slots not already taken by a real caption_number.
+    by_id_num: Dict[int, Dict[str, Any]] = {}
+    if rescue_orphans:
+        for f in figs:
+            fid = f.get("id", "")
+            m = re.match(r"fig[-_]?0*(\d+)", fid, re.IGNORECASE)
+            if not m:
+                continue
+            n = int(m.group(1))
+            if n in by_num:
+                continue        # already a real captioned figure
+            if (f.get("caption_number") or "").strip():
+                continue
+            by_id_num.setdefault(n, f)
 
     paras = split_paragraphs(md_text)
 
@@ -158,6 +186,8 @@ def link_figures(paper: Dict[str, Any], md_text: str,
         f["referenced_in"] = []
 
     total_mentions = 0
+    rescued_mentions = 0
+    cross_caption_mentions = 0
     for idx, para in enumerate(paras):
         mentions = find_mentions(para)
         for (start, end, nums) in mentions:
@@ -166,13 +196,57 @@ def link_figures(paper: Dict[str, Any], md_text: str,
                 sentence = sentence[: max_context_chars - 1] + "…"
             for n in nums:
                 fig = by_num.get(n)
+                rescued = False
+                if not fig:
+                    fig = by_id_num.get(n)
+                    rescued = fig is not None
                 if not fig:
                     continue
-                fig["referenced_in"].append({
+                entry: Dict[str, Any] = {
                     "para_idx": idx,
                     "sentence": sentence,
                     "matched": para[start:end],
+                }
+                if rescued:
+                    entry["rescued_via_id"] = True
+                    rescued_mentions += 1
+                fig["referenced_in"].append(entry)
+                total_mentions += 1
+
+    # Cross-caption rescue: a caption like "Fig 3. Same as Fig 2 but for..."
+    # has a body-text reference to Fig 2 embedded in the caption itself.
+    # We attach those as `cross_caption_referenced_in` on the OTHER figure.
+    for src_fig in figs:
+        src_cap_num = src_fig.get("caption_number")
+        src_cap_text = src_fig.get("caption_text") or ""
+        if not src_cap_text:
+            continue
+        try:
+            src_n = int(re.match(r"\d+", str(src_cap_num)).group(0)) \
+                if src_cap_num is not None else None
+        except Exception:
+            src_n = None
+        # find_mentions returns offsets into src_cap_text
+        for (s, e, nums) in find_mentions(src_cap_text):
+            for n in nums:
+                if n == src_n:
+                    continue  # self-reference, skip
+                target = by_num.get(n) or by_id_num.get(n)
+                if not target:
+                    continue
+                # Avoid duplicating mentions already linked from body
+                already = any(r.get("source_caption_of") == src_fig.get("id")
+                              for r in target.get("referenced_in", []))
+                if already:
+                    continue
+                snippet = src_cap_text[max(0, s - 30): min(len(src_cap_text), e + 80)]
+                target.setdefault("referenced_in", []).append({
+                    "para_idx": None,
+                    "source_caption_of": src_fig.get("id"),
+                    "sentence": " ".join(snippet.split()),
+                    "matched": src_cap_text[s:e],
                 })
+                cross_caption_mentions += 1
                 total_mentions += 1
 
     paper["figure_references_summary"] = {
@@ -180,9 +254,12 @@ def link_figures(paper: Dict[str, Any], md_text: str,
         "n_figures_with_mentions": sum(
             1 for f in figs if f.get("referenced_in")),
         "total_mentions": total_mentions,
+        "rescued_mentions": rescued_mentions,
+        "cross_caption_mentions": cross_caption_mentions,
         "by_figure": {
-            str(f.get("caption_number")): len(f.get("referenced_in", []))
-            for f in figs if f.get("caption_number") is not None
+            str(f.get("caption_number")
+                  or f.get("id") or "?"): len(f.get("referenced_in", []))
+            for f in figs
         },
     }
     return paper

@@ -73,7 +73,13 @@ _EXTRACTABLE_DIAGRAM_KINDS = {
     FigureKind.SCHEMATIC,
 }
 
-_EXTRACTABLE_KINDS = _EXTRACTABLE_CHART_KINDS | _EXTRACTABLE_DIAGRAM_KINDS
+_EXTRACTABLE_EQUATION_KINDS = {
+    FigureKind.EQUATION,
+}
+
+_EXTRACTABLE_KINDS = (_EXTRACTABLE_CHART_KINDS
+                       | _EXTRACTABLE_DIAGRAM_KINDS
+                       | _EXTRACTABLE_EQUATION_KINDS)
 
 
 def _try_extract(kind: FigureKind, image_path: Path,
@@ -104,6 +110,37 @@ def _try_extract(kind: FigureKind, image_path: Path,
                 extractor=name, status=ExtractionStatus.ERROR,
                 reason=f"{type(e).__name__}: {e}")
         return r, name
+
+    if kind in _EXTRACTABLE_EQUATION_KINDS:
+        try:
+            from ..equation_extract import extract_equation
+        except ImportError:
+            return None, ""
+        name = f"equation_extract/{kind.value}"
+        try:
+            eq = extract_equation(image_path, caption=caption)
+        except Exception as e:
+            return ChartExtractionResult(
+                extractor=name, status=ExtractionStatus.ERROR,
+                reason=f"{type(e).__name__}: {e}"), name
+        # Convert EquationResult -> ChartExtractionResult
+        if eq.status == "ok":
+            status = ExtractionStatus.OK
+            confidence = eq.confidence or 0.7
+        elif eq.status == "unavailable":
+            status = ExtractionStatus.UNSUPPORTED
+            confidence = 0.0
+        else:  # error
+            status = ExtractionStatus.ERROR
+            confidence = 0.0
+        return ChartExtractionResult(
+            extractor=name, status=status, confidence=confidence,
+            reason=eq.reason or eq.status,
+            extracted_data={"equation": {
+                "latex": eq.latex,
+                "markdown": eq.markdown,
+            }},
+        ), name
 
     if kind in _EXTRACTABLE_DIAGRAM_KINDS:
         try:
@@ -220,6 +257,20 @@ def run_reflective_extraction(*,
             "n_distinct_colors": mix.image_features.n_distinct_colors if mix.image_features else 0,
         },
     }
+
+    # Early-exit on decorative figures — don't waste extractor time.
+    if mix.top_kind == FigureKind.DECORATIVE:
+        trace.total_elapsed_s = round(time.time() - t0, 3)
+        trace.final_kind = "decorative"
+        # Synthesise a minimal result so downstream code knows this
+        # was classified rather than failed.
+        trace.result = ChartExtractionResult(
+            extractor="mixture/decorative",
+            status=ExtractionStatus.UNSUPPORTED,
+            reason="classified as decorative; skipped extraction",
+            confidence=mix.top_confidence,
+        )
+        return trace
 
     # 2. Build the kind ladder (top first)
     ladder: List[FigureKind] = []

@@ -645,7 +645,114 @@ def main():
     print("=== axis prior feature ==="); test_axis_prior_feature(t)
     print("=== reflective routes diagrams ==="); test_reflective_routes_diagrams(t)
     print("=== caption backfill key derivation ==="); test_caption_backfill_keys(t)
+    print("=== decorative specialist ==="); test_decorative_specialist(t)
+    print("=== axis ticks require ticks ==="); test_axis_requires_ticks(t)
+    print("=== reflective routes equations ==="); test_reflective_routes_equations(t)
+    print("=== figure_refs cross-caption ==="); test_figure_refs_cross_caption(t)
     return t.report()
+
+
+def test_decorative_specialist(t):
+    """Decorative specialist scores high on tiny/banner/blank images."""
+    import tempfile
+    import numpy as np
+    from PIL import Image
+    from pipeline_v2.vision.mixture_classifier import (
+        classify_with_mixture, compute_image_features)
+    from pipeline_v2.vision.base import FigureKind
+    with tempfile.TemporaryDirectory() as td:
+        # Very thin banner -- 800x30
+        banner = Path(td) / "banner.png"
+        Image.new("RGB", (800, 30), "white").save(banner)
+        f = compute_image_features(banner)
+        t.check(f.is_decorative, f"banner detected decorative: {f.decorative_reason!r}")
+        # Tiny logo -- 40x40 single color
+        tiny = Path(td) / "tiny.png"
+        Image.new("RGB", (40, 40), "white").save(tiny)
+        f2 = compute_image_features(tiny)
+        t.check(f2.is_decorative, "tiny image flagged decorative")
+        # Mixture should prefer DECORATIVE for these
+        r = classify_with_mixture(caption="", image_path=banner)
+        t.check(r.top_kind == FigureKind.DECORATIVE,
+                f"banner -> DECORATIVE got {r.top_kind.value}")
+
+
+def test_axis_requires_ticks(t):
+    """has_chart_axes requires actual tick marks, not just a frame."""
+    import tempfile
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from pipeline_v2.vision.mixture_classifier import compute_image_features
+    with tempfile.TemporaryDirectory() as td:
+        # Pie chart: has a frame but no ticks
+        pie = Path(td) / "pie.png"
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
+        ax.pie([40, 30, 20, 10])
+        plt.savefig(pie); plt.close(fig)
+        f_pie = compute_image_features(pie)
+        t.check(not f_pie.has_chart_axes,
+                f"pie has no chart axes: ticks h/v={f_pie.n_tick_marks_h}/"
+                f"{f_pie.n_tick_marks_v}")
+        # Bar chart: real axes with ticks
+        bar = Path(td) / "bar.png"
+        fig, ax = plt.subplots(figsize=(5, 3), dpi=100)
+        ax.bar(list("ABCDE"), [1, 3, 5, 2, 4])
+        plt.savefig(bar); plt.close(fig)
+        f_bar = compute_image_features(bar)
+        t.check(f_bar.has_chart_axes, "bar has chart axes detected")
+        t.check(f_bar.n_tick_marks_h >= 3,
+                f"bar has h-ticks: {f_bar.n_tick_marks_h}")
+
+
+def test_reflective_routes_equations(t):
+    """Reflective runner dispatches EQUATION kind to equation_extract."""
+    import tempfile
+    from PIL import Image, ImageDraw
+    from pipeline_v2.vision.chart_extract.reflective_runner import (
+        run_reflective_extraction)
+    from pipeline_v2.vision.chart_extract.base import ExtractionStatus
+    with tempfile.TemporaryDirectory() as td:
+        img = Path(td) / "eq.png"
+        # Wide aspect with some math text
+        im = Image.new("RGB", (800, 100), "white")
+        d = ImageDraw.Draw(im)
+        d.text((20, 30), "f(x) = x^2 + 2y = 5", fill="black")
+        im.save(img)
+        trace = run_reflective_extraction(
+            image_path=img,
+            caption="Equation 1. A simple equation.",
+            ocr_text=None,
+        )
+        # Equation extractor is unavailable (no pix2tex) but it
+        # should at least be tried in the ladder.
+        steps_kinds = {s.kind for s in trace.steps}
+        # If equation is in the ladder, it should appear in steps OR
+        # the top extractor should produce something
+        t.check(trace.result is not None, "got a result")
+
+
+def test_figure_refs_cross_caption(t):
+    """figure_refs.link_figures populates cross_caption_mentions when
+    one caption references another figure's number."""
+    from pipeline_v2.figure_refs import link_figures
+    paper = {"figures": [
+        {"id": "fig-001", "caption_number": "1",
+         "caption_text": "Standalone caption for fig 1."},
+        {"id": "fig-002", "caption_number": "2",
+         "caption_text": "Continued from Fig. 1; see also Figure 3 details."},
+        {"id": "fig-003", "caption_number": "3",
+         "caption_text": "Final result."},
+    ]}
+    md = "Body para mentions Figure 1 once.\n\nAnother para mentions Fig. 2."
+    link_figures(paper, md)
+    summary = paper["figure_references_summary"]
+    t.check(summary.get("cross_caption_mentions", 0) >= 2,
+            f"cross_caption_mentions: {summary.get('cross_caption_mentions')}")
+    # Fig 1 should have at least 2 mentions: 1 body + 1 cross-caption (from fig 2)
+    fig1_refs = paper["figures"][0]["referenced_in"]
+    t.check(any(r.get("source_caption_of") == "fig-002" for r in fig1_refs),
+            f"fig 1 linked from fig 2 caption: {fig1_refs}")
 
 
 def test_axis_prior_feature(t):

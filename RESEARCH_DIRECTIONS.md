@@ -349,6 +349,8 @@ Given the cost/value tradeoffs:
 | 19   | **NEW** Chart-axes feature gate | 0.5 | Universal "is this a chart" prior via morphological detection of two long perpendicular lines; chart specialists require it, diagram specialists penalise it | ✅ `has_chart_axes` in `ImageFeatures`. Stops Hough-circle noise from firing pie/scatter specialists on schematics |
 | 20   | **NEW** Diagram routing in reflective runner | 0.5 | `flow_diagram` / `schematic` route to `diagram_extract` (mermaid) not chart_extract | ✅ `_EXTRACTABLE_DIAGRAM_KINDS` in `reflective_runner.py`; converts DiagramExtractionResult → ChartExtractionResult so the reflector loop is uniform |
 | 21   | **NEW** Caption backfill | 0.5 | Re-runs caption_pairing on source PDFs, merges results into already-converted paper.json | ✅ `pipeline_v2/caption_backfill.py`. Corpus run: **filled 98/339 (28.9%) of empty captions**, doubled distillation student win-rate (22.5% → 40.1%) |
+| 22   | **NEW** Figure-refs cross-caption + orphan rescue | 0.5 | Captions that reference other figures count as mentions; orphaned body mentions rescue via fig-id mapping | ✅ `pipeline_v2/figure_refs.py`. Corpus run: figs with mentions 33.8% → **37.0%**, +17 cross-caption mentions |
+| 23   | **NEW** Round 3 specialist polish | 0.75 | Tick-mark requirement for axis detection, multipanel detection, decorative specialist, equation routing | ✅ in `mixture_classifier.py` + `reflective_runner.py`. Pie no longer flagged as having chart axes; line/scatter/box/stacked-bar all correctly detected. Decorative specialist short-circuits banner figures. Tests: 133 → 142 passing |
 
 ### What's still loose
 

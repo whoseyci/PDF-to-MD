@@ -66,6 +66,16 @@ class ImageFeatures:
     has_chart_axes: bool = False
     h_axis_length_frac: float = 0.0  # longest horizontal black line / image width
     v_axis_length_frac: float = 0.0  # longest vertical black line / image height
+    # Round 3 features (Sep 2026 specialist polish)
+    n_panels: int = 1             # if multipanel detected, number of panels (1=single)
+    panel_layout: str = ""        # "1x1", "2x1", "1x2", "2x2", "3x3", "Nx?" etc
+    is_decorative: bool = False   # tiny image OR very thin banner OR very monochrome
+    decorative_reason: str = ""
+    has_math_glyphs: bool = False # equation/formula likely
+    has_legend_box: bool = False  # detected boxed legend (small rect with text near top-right)
+    n_tick_marks_h: int = 0       # short perpendicular ticks on the horizontal axis
+    n_tick_marks_v: int = 0
+    edge_pixels_at_border: float = 0.0  # frame-detection: dark pixels along the outer edge
 
 
 def compute_image_features(image_path: Optional[Path]) -> ImageFeatures:
@@ -157,37 +167,217 @@ def compute_image_features(image_path: Optional[Path]) -> ImageFeatures:
         # kernel to highlight axis lines specifically.
         try:
             dark = (gray < 120).astype(np.uint8) * 255
-            # Horizontal kernel length = 30% of width
+            # First: strip a thin border (1-3 px) so a page frame
+            # doesn't dominate. The plot axis is usually a few px
+            # inside the image edge.
+            BORDER = max(3, min(w, h) // 50)
+            inner_mask = np.zeros_like(dark)
+            inner_mask[BORDER:-BORDER, BORDER:-BORDER] = 1
+            dark_inner = dark * inner_mask
             kx = max(20, int(0.30 * w))
             h_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kx, 1))
-            h_lines = cv2.morphologyEx(dark, cv2.MORPH_OPEN, h_kernel)
-            # Vertical kernel length = 30% of height
+            h_lines = cv2.morphologyEx(dark_inner, cv2.MORPH_OPEN, h_kernel)
             ky = max(20, int(0.30 * h))
             v_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, ky))
-            v_lines = cv2.morphologyEx(dark, cv2.MORPH_OPEN, v_kernel)
-            # Longest horizontal run (by row), longest vertical run (by col)
-            h_per_row = h_lines.sum(axis=1) / 255  # pixel count per row
-            v_per_col = v_lines.sum(axis=0) / 255  # pixel count per col
+            v_lines = cv2.morphologyEx(dark_inner, cv2.MORPH_OPEN, v_kernel)
+            h_per_row = h_lines.sum(axis=1) / 255
+            v_per_col = v_lines.sum(axis=0) / 255
             longest_h = float(h_per_row.max()) / max(1, w)
             longest_v = float(v_per_col.max()) / max(1, h)
             f.h_axis_length_frac = round(longest_h, 3)
             f.v_axis_length_frac = round(longest_v, 3)
             # Axes test: BOTH a long horizontal AND vertical line.
-            # Position constraints are intentionally loose because plot
-            # frames vary -- top axis ("twin axis") plots, top-left
-            # legend boxes, etc all break a "must be bottom-left" rule.
-            # We require:
-            #   * both lines >= 25% of image dim
-            #   * the lines aren't both right at the image edge
-            #     (which would be a page border, not axes)
             if longest_h >= 0.25 and longest_v >= 0.25:
-                row_argmax = int(np.argmax(h_per_row))
-                col_argmax = int(np.argmax(v_per_col))
-                # Not at extreme edges (top 2% or bottom 2% rows)
-                row_inside = (h * 0.02) < row_argmax < (h * 0.98)
-                col_inside = (w * 0.02) < col_argmax < (w * 0.98)
-                if row_inside and col_inside:
+                # Find ALL strong horizontal lines and ALL strong
+                # vertical lines, not just the longest. The plot's
+                # actual axis (with ticks) may not be the longest row
+                # (e.g., a boxed plot has 4 spines of equal length;
+                # the bottom one is the x-axis).
+                strong_threshold = longest_h * 0.85 * w
+                candidate_rows = [int(r) for r in
+                                    np.where(h_per_row >= strong_threshold)[0]]
+                strong_threshold_v = longest_v * 0.85 * h
+                candidate_cols = [int(c) for c in
+                                    np.where(v_per_col >= strong_threshold_v)[0]]
+                # Plausible position
+                candidate_rows = [r for r in candidate_rows
+                                    if (h * 0.05) < r < (h * 0.95)]
+                candidate_cols = [c for c in candidate_cols
+                                    if (w * 0.05) < c < (w * 0.95)]
+                # Use full (non-masked) dark mask for tick counting
+                # so the inner-border erosion doesn't kill faint ticks.
+                dark_full = (gray < 130).astype(np.uint8) * 255
+                # For each candidate H-line, count ticks BELOW it.
+                # The real x-axis usually has ticks just below.
+                best_h_ticks = 0
+                for r in candidate_rows:
+                    # Strip BELOW this row (max 15 px), avoid going off-img
+                    end = min(h, r + 15)
+                    if end - r < 3: continue
+                    strip = dark_full[r + 1:end, :]
+                    col_active = strip.sum(axis=0) > 0
+                    ticks = int(np.sum(np.diff(col_active.astype(int)) == 1))
+                    if ticks > best_h_ticks:
+                        best_h_ticks = ticks
+                f.n_tick_marks_h = best_h_ticks
+                # For each candidate V-line, count ticks LEFT of it.
+                best_v_ticks = 0
+                for c in candidate_cols:
+                    end = max(0, c - 15)
+                    if c - end < 3: continue
+                    strip = dark_full[:, end:c]
+                    row_active = strip.sum(axis=1) > 0
+                    ticks = int(np.sum(np.diff(row_active.astype(int)) == 1))
+                    if ticks > best_v_ticks:
+                        best_v_ticks = ticks
+                f.n_tick_marks_v = best_v_ticks
+                # Real chart axes have many tick marks. Tighten the
+                # threshold to filter out spurious "border" matches.
+                if (f.n_tick_marks_h + f.n_tick_marks_v) >= 4:
                     f.has_chart_axes = True
+        except Exception:
+            pass
+
+        # Border / frame detection (a thin dark outer rectangle).
+        # Many "figures" are just decorative banners with a dark border.
+        try:
+            border_px = (gray[:3, :].mean() < 200) + \
+                        (gray[-3:, :].mean() < 200) + \
+                        (gray[:, :3].mean() < 200) + \
+                        (gray[:, -3:].mean() < 200)
+            f.edge_pixels_at_border = float(border_px) / 4
+        except Exception:
+            pass
+
+        # Math-glyph detection from a quick Tesseract pass.
+        # (We don't always have ocr_text available at feature time --
+        # this is best-effort; skip silently on failure.)
+        try:
+            import pytesseract
+            from PIL import Image
+            txt = pytesseract.image_to_string(Image.fromarray(gray),
+                                                 config="--psm 6")
+            if re.search(r"[=∑∫√≤≥±·×÷∞αβγδλμπρσφω]|\\frac|\\sqrt", txt):
+                f.has_math_glyphs = True
+        except Exception:
+            pass
+
+        # Decorative detection: very thin banner, OR
+        # tiny absolute size, OR uniform color with NO structure.
+        # "Structure" = chart axes OR enough rect components OR text.
+        try:
+            very_thin = (h < 40 or w < 40)
+            very_wide_banner = (f.aspect > 8 or f.aspect < 0.125)
+            n_pixels = w * h
+            tiny = n_pixels < 6000  # <80x75
+            very_monochrome = f.n_distinct_colors < 4
+            # Has structure = something a real figure would have
+            has_structure = (f.has_chart_axes
+                              or f.n_rect_components >= 3
+                              or f.n_bar_runs >= 2
+                              or f.n_circles >= 1
+                              or f.text_pixel_frac > 0.04)
+            if very_thin:
+                f.is_decorative = True
+                f.decorative_reason = f"very thin ({w}x{h})"
+            elif tiny:
+                f.is_decorative = True
+                f.decorative_reason = f"tiny ({w}x{h})"
+            elif very_wide_banner and not has_structure:
+                f.is_decorative = True
+                f.decorative_reason = f"banner-aspect {f.aspect}, no structure"
+            elif very_monochrome and not has_structure:
+                f.is_decorative = True
+                f.decorative_reason = (
+                    f"monochrome ({f.n_distinct_colors} colors), no structure")
+        except Exception:
+            pass
+
+        # Multipanel detection: a chart figure often has 2x2/3x3 sub-plots.
+        # Real multipanel splits have a CLEAR white gap PLUS content
+        # blocks on both sides. We require:
+        #   1. The gap is at least 2% of the image dim wide (not just
+        #      a single blank row)
+        #   2. Both sides of the gap have substantial dark content
+        # Plus we look at the *interior* of the image, not the
+        # whole-image row mean (which a blank-background plot would
+        # also satisfy).
+        try:
+            BORDER_P = max(10, int(0.05 * min(w, h)))
+            interior = gray[BORDER_P:-BORDER_P, BORDER_P:-BORDER_P]
+            ih, iw = interior.shape
+            row_mean_i = interior.mean(axis=1)
+            col_mean_i = interior.mean(axis=0)
+            # A "white" row in a panel grid is mean > 245 (very white)
+            white_rows = row_mean_i > 245
+            white_cols = col_mean_i > 245
+            def _strong_gaps(white_arr, dim, min_gap_frac=0.02):
+                """Find white runs of length >= min_gap_frac * dim that
+                are NOT at the start/end (those are margins not gaps)."""
+                n = len(white_arr)
+                min_gap = max(4, int(min_gap_frac * dim))
+                # Drop edge runs (first 15% and last 15%)
+                edge = int(0.15 * n)
+                gaps = []
+                i = edge
+                while i < n - edge:
+                    if white_arr[i]:
+                        j = i
+                        while j < n and white_arr[j]:
+                            j += 1
+                        if (j - i) >= min_gap:
+                            # Verify both sides have content
+                            left_dark = (~white_arr[max(0, i - 20):i]).sum()
+                            right_dark = (~white_arr[j:j + 20]).sum()
+                            if left_dark >= 5 and right_dark >= 5:
+                                gaps.append((i + j) // 2)
+                        i = j
+                    else:
+                        i += 1
+                # Merge gaps closer than 15% of dim
+                merged = []
+                for g in gaps:
+                    if merged and g - merged[-1] < n * 0.15:
+                        continue
+                    merged.append(g)
+                return merged
+            # Use a higher min_gap_frac for serious multipanel
+            # detection (real subplot gaps are >8% of dim).
+            h_gaps = _strong_gaps(white_rows, ih, min_gap_frac=0.08)
+            v_gaps = _strong_gaps(white_cols, iw, min_gap_frac=0.08)
+            n_rows = 1 + len(h_gaps)
+            n_cols = 1 + len(v_gaps)
+            # Real multipanel REQUIRES the gap to look like a true
+            # row-of-panels split: BOTH dimensions must split (a 2x2
+            # or 3x3 grid). One-dimensional "splits" are bar/scatter
+            # gaps, not panels.
+            if n_rows >= 2 and n_cols >= 2:
+                n_rows = min(n_rows, 4)
+                n_cols = min(n_cols, 4)
+                f.n_panels = n_rows * n_cols
+                f.panel_layout = f"{n_rows}x{n_cols}"
+            else:
+                f.panel_layout = "1x1"
+        except Exception:
+            f.panel_layout = "1x1"
+
+        # Legend-box detection: a small bordered rect in top-right
+        # corner with text in it.
+        try:
+            top_right = gray[: int(h * 0.40), int(w * 0.55):]
+            tr_dark = (top_right < 130).astype(np.uint8) * 255
+            ny, ncc, st, _ = cv2.connectedComponentsWithStats(tr_dark, 8)
+            for i in range(1, ncc):
+                x, y, ww, hh, area = st[i]
+                if 0.06 * top_right.size < area < 0.40 * top_right.size:
+                    aspect = ww / max(1, hh)
+                    if 0.5 < aspect < 4:
+                        # Hollow-ish? sample interior darkness
+                        interior_mean = top_right[
+                            y + 2:y + hh - 2, x + 2:x + ww - 2].mean()
+                        if 100 < interior_mean < 230:
+                            f.has_legend_box = True
+                            break
         except Exception:
             pass
     except Exception:
@@ -419,18 +609,56 @@ def specialist_photo(caption: str, ocr_text: str,
 def specialist_equation(caption: str, ocr_text: str,
                           img: ImageFeatures) -> SpecialistScore:
     cap = _caption_keyword_score(caption, ocr_text, FigureKind.EQUATION)
-    # Wide-and-short aspect + lots of small dark glyphs
     wide = 1.0 if (img.has_data and img.aspect > 2.5) else 0.0
-    has_eq_glyph = 0.0
+    # OCR-text-side detection (passed in by caller)
+    has_eq_glyph_ocr = 0.0
     if ocr_text:
         if re.search(r"[=∑∫√≤≥±·×÷]", ocr_text):
-            has_eq_glyph = 1.0
-    score = 0.40 * cap + 0.35 * wide + 0.25 * has_eq_glyph
+            has_eq_glyph_ocr = 1.0
+    # Image-feature-side detection (from feature-time tesseract pass)
+    has_eq_glyph_img = 1.0 if (img.has_data and img.has_math_glyphs) else 0.0
+    # Either signal is fine
+    has_eq_glyph = max(has_eq_glyph_ocr, has_eq_glyph_img)
+    # Equations don't have plot axes
+    no_axis_prior = 1.0 if (img.has_data and not img.has_chart_axes) else 0.0
+    if not img.has_data: no_axis_prior = 0.5
+    score = (0.30 * cap + 0.25 * wide + 0.30 * has_eq_glyph
+               + 0.15 * no_axis_prior)
     return SpecialistScore(
         kind=FigureKind.EQUATION, score=round(score, 3),
-        reason=f"aspect={img.aspect}, has_math={bool(has_eq_glyph)}",
+        reason=f"aspect={img.aspect}, has_math={bool(has_eq_glyph)}, axes={img.has_chart_axes}",
         components={"caption_kw": cap, "wide_aspect": wide,
-                     "has_math_glyph": has_eq_glyph})
+                     "has_math_glyph": has_eq_glyph,
+                     "no_axis_prior": no_axis_prior})
+
+
+def specialist_decorative(caption: str, ocr_text: str,
+                           img: ImageFeatures) -> SpecialistScore:
+    """Detect images that aren't really figures: page banners, logos,
+    section dividers, decorative borders. These figures shouldn't
+    waste extractor time."""
+    if not img.has_data:
+        # Without features we can't decide -- low confidence
+        return SpecialistScore(
+            kind=FigureKind.DECORATIVE, score=0.0,
+            reason="no image data")
+    feature_score = 1.0 if img.is_decorative else 0.0
+    cap = _caption_keyword_score(caption, ocr_text,
+                                   FigureKind.DECORATIVE)
+    # An informative caption should SUPPRESS the decorative score
+    # (real figures have captions).
+    caption_present = 1.0 if (caption and len(caption.split()) >= 4) else 0.0
+    # If caption present, halve the score: decorative figures
+    # rarely have proper captions.
+    base = 0.70 * feature_score + 0.30 * cap
+    if caption_present:
+        base *= 0.4
+    return SpecialistScore(
+        kind=FigureKind.DECORATIVE, score=round(base, 3),
+        reason=img.decorative_reason or "no decorative signal",
+        components={"feature_signal": feature_score,
+                     "caption_kw": cap,
+                     "caption_suppresses": caption_present})
 
 
 def specialist_table_as_image(caption: str, ocr_text: str,
@@ -466,6 +694,7 @@ SPECIALISTS = [
     specialist_photo,
     specialist_equation,
     specialist_table_as_image,
+    specialist_decorative,
 ]
 
 
