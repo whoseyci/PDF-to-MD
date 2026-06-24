@@ -85,52 +85,137 @@ better caption pairing + layout" optional path.
 
 ## 2. Agent-style document extraction (2026 vintage)
 
-### The landscape
+### Update (user-pointed)
 
-Three flavours of "agent" in document parsing:
+User clarified what they meant by "agent language": **RecursiveMAS**
+(Yang et al., 2026, arXiv 2604.25917, recursivemas.github.io). My
+earlier survey conflated two very different things — let me redo it
+with the right reference.
 
-**a. Single-pass LLM dressed up as agentic** (most common)
-   * OCR → GPT-4 prompt → JSON. No planning, no validation.
-   * Examples: Airparser, many SaaS tools.
-   * **Verdict**: not really agentic. Not interesting for our use case.
+### What RecursiveMAS actually is
 
-**b. Multi-step agent frameworks** (StructSense, Crew.AI-based)
-   * Plan → extract → validate → cross-check → repeat.
-   * Uses Crew.AI / LangGraph / LlamaIndex for orchestration.
-   * Tools: GROBID for PDF parsing, vector DB for ontology lookup,
-     LLM for reasoning.
-   * **Verdict**: useful for *structured field extraction* (invoices,
-     tax forms, clinical narratives) where you have a known target
-     schema. Less relevant for our "convert any PDF to clean markdown"
-     job.
+A multi-agent framework where agents communicate **through latent
+hidden states**, not text. Each agent acts like a recursive layer:
 
-**c. PaddleOCR-VL + Qianfan-OCR ("Layout-as-Thought")**
-   * arXiv 2603.13398 (Mar 2026): Qianfan-OCR introduces
-     **Layout-as-Thought** -- the OCR model emits its layout-analysis
-     reasoning as part of the output before generating text. This lets
-     a single end-to-end model recover bbox-level layout (like
-     DeepSeek-OCR grounding) AND avoid pipeline cascading errors.
-   * **Verdict**: the most relevant new direction. The "thought" tokens
-     would be useful as a layout signal AND as confidence telemetry.
+1. **InnerLink** — the agent's last-layer hidden state is fed back
+   as its next input, generating a chain of "latent thoughts" in
+   continuous space (no token decoding).
+2. **OuterLink** — those latent thoughts are projected and passed to
+   the next agent in the loop.
+3. The loop closes: last agent's latent thoughts feed back to the
+   first. **Only the final round decodes to text.**
 
-### Should we adopt agent-style?
+Both Links are small (~13M params, 0.31% of system); base LLMs are
+frozen. Trained with an inner–outer loop: per-agent warm-start
+(regression to embedding distribution of GT), then full-system
+unroll with one cross-entropy on final text.
 
-**Yes, in one specific spot: cross-validation between extractors.**
+**Reported numbers** (across 9 benchmarks):
+* +8.3% avg accuracy vs strongest baseline
+* 1.2× → 2.4× speedup as recursion deepens (r=1 → r=3)
+* 34.6% → 75.6% token-usage reduction
+* On AIME 2025 math: +18.1% over best baseline
 
-We already have multiple extractors that produce overlapping outputs:
-  * `chart_extract` (geometric) + `chart_extract/deplot` (VLM)
-  * `pdftotext` + `pymupdf4llm` (in `text_extract.py`)
-  * `caption_pairing` + `figure_refs` (both find figure mentions
-    different ways)
+### Why it works (theory)
 
-The agent move would be: a small validator agent that, when two
-extractors disagree, picks the more confident one (or invokes a
-third tiebreaker). This is **light** -- no LangChain, no GPT-4 call
-per page. Just a `Validator` class that owns the policy.
+* **Runtime**: text-mediated MAS pays an O(|V|·d_h) vocab-projection
+  cost per agent step; latent recursion replaces that with O(d_h²),
+  much cheaper since d_h ≪ |V|.
+* **Gradient stability**: text-based recursive SFT suffers from
+  vanishing gradients when token predictions are confident
+  (entropy ≤ ε); latent recursion keeps gradient norm Ω(1 − ...),
+  so credit signals survive across rounds.
 
-I'll write it up as **E10 (validator agent)** in
-`RESEARCH_DIRECTIONS.md` and we can implement when the eval shows it
-would help.
+### Four collaboration patterns documented:
+
+1. **Sequential** — Planner → Critic → Solver (decompose-judge-refine)
+2. **Mixture** — Math + Code + Science specialists → Summarizer
+3. **Distillation** — Expert ↔ Learner (smaller model learns)
+4. **Deliberation** — Reflector ↔ Tool-Caller (Python + search)
+
+---
+
+### Can we adopt RecursiveMAS literally?
+
+**No, and I should be honest about why.**
+
+| Constraint of RecursiveMAS | Our reality | Verdict |
+|----------------------------|-------------|---------|
+| Needs CUDA + 16+ GB VRAM (training & inference) | 2 vCPU, 2 GB RAM, no GPU | ❌ |
+| Requires shared latent-space access between agents (raw hidden states) | We invoke Gemma 4 via llama.cpp **subprocesses** — the hidden states never leave the child process | ❌ |
+| Same model family / framework (HF transformers, identical compute graph) | We mix subprocess-llama.cpp Gemma, in-process Pix2Struct (DePlot), and pure-Python geometric extractors | ❌ |
+| ~13M trainable RecursiveLink params, full inner+outer SFT loop | We have no training infrastructure, no GPU, no labelled trajectories | ❌ |
+| Domains: math, code, science, medicine (long reasoning chains) | Our domain: PDF → markdown (mostly perceptual; reasoning is shallow) | ⚠ poor fit |
+
+So a literal RecursiveMAS port is off the table. The **honest take**:
+its biggest wins are on benchmarks where multi-round reasoning
+actually matters (AIME, GPQA, code gen). PDF→markdown is mostly a
+*perception* task — most of our pipeline doesn't benefit from
+iterative refinement.
+
+### What we CAN adapt: the four collaboration patterns
+
+The RecursiveMAS structural patterns are useful frames even WITHOUT
+the latent-state machinery. We already have a (very limited) version
+of "Sequential" in `CascadingExtractor` (simple_bars → DePlot), but
+no Mixture, Distillation, or Deliberation. Sketching what each
+would look like for us:
+
+**E14 — Sequential pattern (extend our CascadingExtractor)**
+  Already partially shipped. Could add: a third stage that runs
+  *after* DePlot's output is in hand, looking at confidence
+  warnings and re-asking with a different prompt. Currently we just
+  return DePlot's first answer. ~0.5d.
+
+**E15 — Mixture pattern for figure classification**
+  Today `classifier.py` assigns one `FigureKind` per figure. With
+  Mixture: have a `BarSpecialist`, `LineSpecialist`, `DiagramSpecialist`
+  each return a confidence + structured output; a `Summarizer` picks
+  the highest-confidence interpretation. This is more robust than
+  trusting a single classifier. ~1d.
+
+**E16 — Distillation pattern for caption extraction**
+  Today we run Gemma 4 (slow, large) on every caption that needs
+  alt-text. Distillation: a small student (TextRank summariser,
+  rule-based extractor) handles 80% of captions; Gemma is only
+  invoked on the 20% the student flags low-confidence. Already
+  *roughly* how we use Gemma; would benefit from a formal handshake.
+  ~0.5d.
+
+**E17 — Deliberation pattern for the chart_extract validator**
+  We have `chart_extract/validator.py`. Add a Reflector agent that
+  re-reads the validator's complaint and decides whether to
+  re-extract with different params (e.g. tighter axis OCR band,
+  different bar-detection threshold) vs accept the partial result.
+  This is the most "agentic" pattern and probably the highest-ROI.
+  ~1.5d.
+
+### What I'd actually build first
+
+If we're being honest: **none of these are urgent**. The eval harness
+just showed that `pdf2md-auto` already matches `pymupdf4llm` quality
+at 5× the speed on text extraction. The bottleneck is the
+figure pipeline (chart extraction takes 40-100 s/figure with
+DePlot fallback), and there a Mixture pattern (E15) or Deliberation
+(E17) would help more than a literal RecursiveMAS port.
+
+If/when training infrastructure shows up (GPU host, gradient access
+between agents), the actual RecursiveMAS would be worth a real port.
+For now: the patterns are good design vocabulary, the latent-state
+mechanism isn't reachable with our compute stack.
+
+### The cite
+
+```
+@misc{recursivemas,
+  title   = {Recursive Multi-Agent Systems},
+  author  = {Xiyuan Yang and Jiaru Zou and Rui Pan and Ruizhong Qiu
+              and Pan Lu and Shizhe Diao and Jindong Jiang and Hanghang Tong
+              and Tong Zhang and Markus J. Buehler and Jingrui He and James Zou},
+  year    = {2026},
+  eprint  = {2604.25917},
+}
+```
 
 ---
 

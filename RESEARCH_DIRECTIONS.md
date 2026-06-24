@@ -341,6 +341,10 @@ Given the cost/value tradeoffs:
 | 11   | **NEW** Rotation auto-correct        | 0.5      | Detects mis-rotated scans via Tesseract OSD, patches page-rotation flag | ✅ shipped as `pipeline_v2/rotation_fix.py` |
 | 12   | **NEW** DeepSeek-OCR grounding plugin | 1-2     | Opt-in; replaces caption-pairing's negative-space heuristic with VLM-derived bboxes | 📋 documented in `RESEARCH_NOTES_LATEST.md` §1 — not shipped (needs CUDA + 6GB weights) |
 | 13   | **NEW** Cross-extractor validator agent | 1     | When two extractors disagree, picks the more confident one. No LLM call required | 📋 documented in `RESEARCH_NOTES_LATEST.md` §2 |
+| 14   | **NEW** Sequential cascade extension | 0.5   | Add a 3rd post-DePlot stage that re-asks with a different prompt on warnings (RecursiveMAS Sequential pattern) | 📋 sketched in `RESEARCH_NOTES_LATEST.md` §2 |
+| 15   | **NEW** Mixture-of-specialists figure classifier | 1 | Per-kind specialist confidences + summariser, instead of trusting one classifier (RecursiveMAS Mixture pattern) | 📋 sketched |
+| 16   | **NEW** Distillation-style caption extractor | 0.5 | Rule-based student handles 80%; Gemma 4 only on low-confidence (RecursiveMAS Distillation pattern) | 📋 sketched |
+| 17   | **NEW** Deliberation reflector on chart validator | 1.5 | Reflector re-asks chart_extract with tighter params on validator warnings (RecursiveMAS Deliberation pattern; highest expected ROI) | 📋 sketched |
 
 ### What's still loose
 
