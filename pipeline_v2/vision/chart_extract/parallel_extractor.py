@@ -224,20 +224,52 @@ def run_parallel_extraction(*,
                               auto_ocr: bool = True,
                               decorative_skip: bool = True,
                               early_stop_on_high_conf: float = 0.85,
+                              auto_downscale_max_dim: int = 900,
                               ) -> ParallelExtractionTrace:
-    """Run every enabled extractor; pick the best by quality score."""
+    """Run every enabled extractor; pick the best by quality score.
+
+    `auto_downscale_max_dim`: real PDF figures can be 2000-4000 px
+    wide. Geometric extractors are O(n^2) in image size, so a 1750x1333
+    figure takes ~110 s. We downscale anything larger than this dim
+    to bound runtime to ~5 s/figure with negligible accuracy loss.
+    """
     t0 = time.time()
     trace = ParallelExtractionTrace(
         image_path=str(image_path),
         classifier_hint=(classifier_hint.value
                           if classifier_hint else None))
 
+    # -1. Downscale very large images to bound extractor latency.
+    # The geometric extractors don't gain accuracy from extra
+    # resolution but pay O(n^2) for it.
+    actual_path = image_path
+    if auto_downscale_max_dim:
+        try:
+            from PIL import Image as _PILImage
+            import tempfile as _tf
+            with _PILImage.open(image_path) as im:
+                W, H = im.size
+                m = max(W, H)
+                if m > auto_downscale_max_dim:
+                    scale = auto_downscale_max_dim / m
+                    new_size = (int(W * scale), int(H * scale))
+                    f = _tf.NamedTemporaryFile(
+                        suffix=".png", delete=False,
+                        dir="/home/user/.tmp")
+                    f.close()
+                    im.resize(new_size).save(f.name)
+                    actual_path = Path(f.name)
+                    trace.decision_log.append(
+                        f"downscaled {W}x{H} -> {new_size}")
+        except Exception:
+            pass
+
     # 0. Auto-OCR
     if auto_ocr and (ocr_text is None or not ocr_text.strip()):
         try:
             import pytesseract
             from PIL import Image
-            ocr_text = pytesseract.image_to_string(Image.open(image_path))
+            ocr_text = pytesseract.image_to_string(Image.open(actual_path))
             trace.decision_log.append(f"auto-ocr: {len(ocr_text)} chars")
         except Exception as e:
             ocr_text = ocr_text or ""
@@ -271,7 +303,7 @@ def run_parallel_extraction(*,
     for kind in enabled:
         t_step = time.time()
         result, ext_name = _try_one(
-            kind, image_path,
+            kind, actual_path,
             caption=caption, ocr_text=ocr_text)
         elapsed = round(time.time() - t_step, 3)
         if result is None:

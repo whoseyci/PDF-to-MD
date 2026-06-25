@@ -76,6 +76,27 @@ class SimpleBarsExtractor(ChartExtractor):
                 r.reason = f"only {len(bars)} bar candidate; not a bar chart"
                 r.elapsed_seconds = time.time() - t0; return r
             bars_g = [(bx + x0, by + y0, bw, bh) for (bx, by, bw, bh) in bars]
+            # Self-rejection: real bars share a common baseline.
+            # Box plots / scatter clusters have rectangles at varying
+            # vertical positions. Use largest cluster of bottom edges
+            # within `band` pixels of each other.
+            if orientation == "vertical":
+                edges = [by + bh for (bx, by, bw, bh) in bars_g]
+                band = max(8, 0.05 * (y1 - y0))
+            else:
+                edges = [bx for (bx, by, bw, bh) in bars_g]
+                band = max(8, 0.05 * (x1 - x0))
+            sorted_e = sorted(edges)
+            best_cluster = 0
+            for i, e in enumerate(sorted_e):
+                k = sum(1 for ee in sorted_e[i:] if ee - e <= band)
+                if k > best_cluster:
+                    best_cluster = k
+            if best_cluster < max(2, int(0.75 * len(bars_g))):
+                r.status = ExtractionStatus.NO_BARS
+                r.reason = (f"only {best_cluster}/{len(bars_g)} bars share a "
+                              f"baseline within {band}px; not a bar chart")
+                r.elapsed_seconds = time.time() - t0; return r
             r.bar_boxes = [[int(b[0]), int(b[1]), int(b[2]), int(b[3])] for b in bars_g]
             if orientation == "vertical":
                 bars_g.sort(key=lambda b: b[0] + b[2] / 2)

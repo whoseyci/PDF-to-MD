@@ -1,0 +1,458 @@
+{
+  "n": 18,
+  "n_correct": 16,
+  "by_variant": {
+    "bar_styled_as_box": {
+      "n": 2,
+      "correct": 2,
+      "rows": [
+        {
+          "truth": "bar_chart",
+          "variant": "bar_styled_as_box",
+          "desc": "bar with internal horizontal cap (looks like box median line)",
+          "cap": "rich",
+          "winner_kind": "bar_chart",
+          "winner_status": "ok",
+          "elapsed_s": 6.18,
+          "correct": true,
+          "arb": "highest quality (5.25) was bar_chart/ok"
+        },
+        {
+          "truth": "bar_chart",
+          "variant": "bar_styled_as_box",
+          "desc": "bar with internal horizontal cap (looks like box median line)",
+          "cap": "empty",
+          "winner_kind": "bar_chart",
+          "winner_status": "ok",
+          "elapsed_s": 6.1,
+          "correct": true,
+          "arb": "highest quality (5.25) was bar_chart/ok"
+        }
+      ]
+    },
+    "scatter_with_regression": {
+      "n": 2,
+      "correct": 2,
+      "rows": [
+        {
+          "truth": "scatter_plot",
+          "variant": "scatter_with_regression",
+          "desc": "scatter + best-fit line (looks like line plot)",
+          "cap": "rich",
+          "winner_kind": "scatter_plot",
+          "winner_status": "partial",
+          "elapsed_s": 16.13,
+          "correct": true,
+          "arb": "highest quality (2.475) was scatter_plot/partial"
+        },
+        {
+          "truth": "scatter_plot",
+          "variant": "scatter_with_regression",
+          "desc": "scatter + best-fit line (looks like line plot)",
+          "cap": "empty",
+          "winner_kind": "scatter_plot",
+          "winner_status": "partial",
+          "elapsed_s": 16.65,
+          "correct": true,
+          "arb": "highest quality (2.475) was scatter_plot/partial"
+        }
+      ]
+    },
+    "pie_with_legend_box": {
+      "n": 2,
+      "correct": 2,
+      "rows": [
+        {
+          "truth": "pie_chart",
+          "variant": "pie_with_legend_box",
+          "desc": "pie + bordered legend (extra rect could look like axis)",
+          "cap": "rich",
+          "winner_kind": "pie_chart",
+          "winner_status": "partial",
+          "elapsed_s": 14.07,
+          "correct": true,
+          "arb": "highest quality (2.475) was pie_chart/partial"
+        },
+        {
+          "truth": "pie_chart",
+          "variant": "pie_with_legend_box",
+          "desc": "pie + bordered legend (extra rect could look like axis)",
+          "cap": "empty",
+          "winner_kind": "pie_chart",
+          "winner_status": "partial",
+          "elapsed_s": 14.18,
+          "correct": true,
+          "arb": "highest quality (2.475) was pie_chart/partial"
+        }
+      ]
+    },
+    "box_with_outliers": {
+      "n": 2,
+      "correct": 2,
+      "rows": [
+        {
+          "truth": "box_plot",
+          "variant": "box_with_outliers",
+          "desc": "box plot with many outlier dots (looks like scatter)",
+          "cap": "rich",
+          "winner_kind": "box_plot",
+          "winner_status": "ok",
+          "elapsed_s": 10.23,
+          "correct": true,
+          "arb": "highest quality (5.65) was box_plot/ok"
+        },
+        {
+          "truth": "box_plot",
+          "variant": "box_with_outliers",
+          "desc": "box plot with many outlier dots (looks like scatter)",
+          "cap": "empty",
+          "winner_kind": "box_plot",
+          "winner_status": "ok",
+          "elapsed_s": 10.53,
+          "correct": true,
+          "arb": "highest quality (5.65) was box_plot/ok"
+        }
+      ]
+    },
+    "horizontal_bars": {
+      "n": 2,
+      "correct": 2,
+      "rows": [
+        {
+          "truth": "bar_chart",
+          "variant": "horizontal_bars",
+          "desc": "horizontal bar chart",
+          "cap": "rich",
+          "winner_kind": "bar_chart",
+          "winner_status": "partial",
+          "elapsed_s": 24.78,
+          "correct": true,
+          "arb": "highest quality (2.475) was bar_chart/partial"
+        },
+        {
+          "truth": "bar_chart",
+          "variant": "horizontal_bars",
+          "desc": "horizontal bar chart",
+          "cap": "empty",
+          "winner_kind": "bar_chart",
+          "winner_status": "partial",
+          "elapsed_s": 23.93,
+          "correct": true,
+          "arb": "highest quality (2.475) was bar_chart/partial"
+        }
+      ]
+    },
+    "chart_with_colorful_legend": {
+      "n": 2,
+      "correct": 2,
+      "rows": [
+        {
+          "truth": "line_plot",
+          "variant": "chart_with_colorful_legend",
+          "desc": "line chart with multi-color legend (could look stacked)",
+          "cap": "rich",
+          "winner_kind": "line_plot",
+          "winner_status": "ok",
+          "elapsed_s": 2.39,
+          "correct": true,
+          "arb": "highest quality (5.05) was line_plot/ok"
+        },
+        {
+          "truth": "line_plot",
+          "variant": "chart_with_colorful_legend",
+          "desc": "line chart with multi-color legend (could look stacked)",
+          "cap": "empty",
+          "winner_kind": "line_plot",
+          "winner_status": "ok",
+          "elapsed_s": 2.28,
+          "correct": true,
+          "arb": "highest quality (5.05) was line_plot/ok"
+        }
+      ]
+    },
+    "grouped_bars": {
+      "n": 2,
+      "correct": 2,
+      "rows": [
+        {
+          "truth": "bar_chart",
+          "variant": "grouped_bars",
+          "desc": "multi-group bars (could look like scatter)",
+          "cap": "rich",
+          "winner_kind": "bar_chart",
+          "winner_status": "partial",
+          "elapsed_s": 20.23,
+          "correct": true,
+          "arb": "highest quality (2.475) was bar_chart/partial"
+        },
+        {
+          "truth": "bar_chart",
+          "variant": "grouped_bars",
+          "desc": "multi-group bars (could look like scatter)",
+          "cap": "empty",
+          "winner_kind": "bar_chart",
+          "winner_status": "partial",
+          "elapsed_s": 20.31,
+          "correct": true,
+          "arb": "highest quality (2.475) was bar_chart/partial"
+        }
+      ]
+    },
+    "negative_values": {
+      "n": 2,
+      "correct": 2,
+      "rows": [
+        {
+          "truth": "bar_chart",
+          "variant": "negative_values",
+          "desc": "bars with negative values",
+          "cap": "rich",
+          "winner_kind": "bar_chart",
+          "winner_status": "ok",
+          "elapsed_s": 5.84,
+          "correct": true,
+          "arb": "highest quality (5.25) was bar_chart/ok"
+        },
+        {
+          "truth": "bar_chart",
+          "variant": "negative_values",
+          "desc": "bars with negative values",
+          "cap": "empty",
+          "winner_kind": "bar_chart",
+          "winner_status": "ok",
+          "elapsed_s": 6.27,
+          "correct": true,
+          "arb": "highest quality (5.25) was bar_chart/ok"
+        }
+      ]
+    },
+    "log_scale": {
+      "n": 2,
+      "correct": 0,
+      "rows": [
+        {
+          "truth": "bar_chart",
+          "variant": "log_scale",
+          "desc": "bar chart with log-scale y axis",
+          "cap": "rich",
+          "winner_kind": "line_plot",
+          "winner_status": "no_axis",
+          "elapsed_s": 5.92,
+          "correct": false,
+          "arb": "highest quality (0.3) was line_plot/no_axis"
+        },
+        {
+          "truth": "bar_chart",
+          "variant": "log_scale",
+          "desc": "bar chart with log-scale y axis",
+          "cap": "empty",
+          "winner_kind": "line_plot",
+          "winner_status": "no_axis",
+          "elapsed_s": 5.93,
+          "correct": false,
+          "arb": "highest quality (0.3) was line_plot/no_axis"
+        }
+      ]
+    }
+  },
+  "rows": [
+    {
+      "truth": "bar_chart",
+      "variant": "bar_styled_as_box",
+      "desc": "bar with internal horizontal cap (looks like box median line)",
+      "cap": "rich",
+      "winner_kind": "bar_chart",
+      "winner_status": "ok",
+      "elapsed_s": 6.18,
+      "correct": true,
+      "arb": "highest quality (5.25) was bar_chart/ok"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "bar_styled_as_box",
+      "desc": "bar with internal horizontal cap (looks like box median line)",
+      "cap": "empty",
+      "winner_kind": "bar_chart",
+      "winner_status": "ok",
+      "elapsed_s": 6.1,
+      "correct": true,
+      "arb": "highest quality (5.25) was bar_chart/ok"
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "scatter_with_regression",
+      "desc": "scatter + best-fit line (looks like line plot)",
+      "cap": "rich",
+      "winner_kind": "scatter_plot",
+      "winner_status": "partial",
+      "elapsed_s": 16.13,
+      "correct": true,
+      "arb": "highest quality (2.475) was scatter_plot/partial"
+    },
+    {
+      "truth": "scatter_plot",
+      "variant": "scatter_with_regression",
+      "desc": "scatter + best-fit line (looks like line plot)",
+      "cap": "empty",
+      "winner_kind": "scatter_plot",
+      "winner_status": "partial",
+      "elapsed_s": 16.65,
+      "correct": true,
+      "arb": "highest quality (2.475) was scatter_plot/partial"
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "pie_with_legend_box",
+      "desc": "pie + bordered legend (extra rect could look like axis)",
+      "cap": "rich",
+      "winner_kind": "pie_chart",
+      "winner_status": "partial",
+      "elapsed_s": 14.07,
+      "correct": true,
+      "arb": "highest quality (2.475) was pie_chart/partial"
+    },
+    {
+      "truth": "pie_chart",
+      "variant": "pie_with_legend_box",
+      "desc": "pie + bordered legend (extra rect could look like axis)",
+      "cap": "empty",
+      "winner_kind": "pie_chart",
+      "winner_status": "partial",
+      "elapsed_s": 14.18,
+      "correct": true,
+      "arb": "highest quality (2.475) was pie_chart/partial"
+    },
+    {
+      "truth": "box_plot",
+      "variant": "box_with_outliers",
+      "desc": "box plot with many outlier dots (looks like scatter)",
+      "cap": "rich",
+      "winner_kind": "box_plot",
+      "winner_status": "ok",
+      "elapsed_s": 10.23,
+      "correct": true,
+      "arb": "highest quality (5.65) was box_plot/ok"
+    },
+    {
+      "truth": "box_plot",
+      "variant": "box_with_outliers",
+      "desc": "box plot with many outlier dots (looks like scatter)",
+      "cap": "empty",
+      "winner_kind": "box_plot",
+      "winner_status": "ok",
+      "elapsed_s": 10.53,
+      "correct": true,
+      "arb": "highest quality (5.65) was box_plot/ok"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "horizontal_bars",
+      "desc": "horizontal bar chart",
+      "cap": "rich",
+      "winner_kind": "bar_chart",
+      "winner_status": "partial",
+      "elapsed_s": 24.78,
+      "correct": true,
+      "arb": "highest quality (2.475) was bar_chart/partial"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "horizontal_bars",
+      "desc": "horizontal bar chart",
+      "cap": "empty",
+      "winner_kind": "bar_chart",
+      "winner_status": "partial",
+      "elapsed_s": 23.93,
+      "correct": true,
+      "arb": "highest quality (2.475) was bar_chart/partial"
+    },
+    {
+      "truth": "line_plot",
+      "variant": "chart_with_colorful_legend",
+      "desc": "line chart with multi-color legend (could look stacked)",
+      "cap": "rich",
+      "winner_kind": "line_plot",
+      "winner_status": "ok",
+      "elapsed_s": 2.39,
+      "correct": true,
+      "arb": "highest quality (5.05) was line_plot/ok"
+    },
+    {
+      "truth": "line_plot",
+      "variant": "chart_with_colorful_legend",
+      "desc": "line chart with multi-color legend (could look stacked)",
+      "cap": "empty",
+      "winner_kind": "line_plot",
+      "winner_status": "ok",
+      "elapsed_s": 2.28,
+      "correct": true,
+      "arb": "highest quality (5.05) was line_plot/ok"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "grouped_bars",
+      "desc": "multi-group bars (could look like scatter)",
+      "cap": "rich",
+      "winner_kind": "bar_chart",
+      "winner_status": "partial",
+      "elapsed_s": 20.23,
+      "correct": true,
+      "arb": "highest quality (2.475) was bar_chart/partial"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "grouped_bars",
+      "desc": "multi-group bars (could look like scatter)",
+      "cap": "empty",
+      "winner_kind": "bar_chart",
+      "winner_status": "partial",
+      "elapsed_s": 20.31,
+      "correct": true,
+      "arb": "highest quality (2.475) was bar_chart/partial"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "negative_values",
+      "desc": "bars with negative values",
+      "cap": "rich",
+      "winner_kind": "bar_chart",
+      "winner_status": "ok",
+      "elapsed_s": 5.84,
+      "correct": true,
+      "arb": "highest quality (5.25) was bar_chart/ok"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "negative_values",
+      "desc": "bars with negative values",
+      "cap": "empty",
+      "winner_kind": "bar_chart",
+      "winner_status": "ok",
+      "elapsed_s": 6.27,
+      "correct": true,
+      "arb": "highest quality (5.25) was bar_chart/ok"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "log_scale",
+      "desc": "bar chart with log-scale y axis",
+      "cap": "rich",
+      "winner_kind": "line_plot",
+      "winner_status": "no_axis",
+      "elapsed_s": 5.92,
+      "correct": false,
+      "arb": "highest quality (0.3) was line_plot/no_axis"
+    },
+    {
+      "truth": "bar_chart",
+      "variant": "log_scale",
+      "desc": "bar chart with log-scale y axis",
+      "cap": "empty",
+      "winner_kind": "line_plot",
+      "winner_status": "no_axis",
+      "elapsed_s": 5.93,
+      "correct": false,
+      "arb": "highest quality (0.3) was line_plot/no_axis"
+    }
+  ]
+}

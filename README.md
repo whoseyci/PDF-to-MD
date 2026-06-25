@@ -253,6 +253,29 @@ Without-caption reflective extraction went from **50% → 78.6%** on
 the synthetic bench after these fixes. With-caption performance
 unchanged (already at 86%, capped by extractor quality).
 
+### Round 5 honest-evaluation push (Oct 2026)
+
+User asked if we'd reached the limit. Built 4 new benches in sequence
+to find out:
+
+| Bench | n | Score |
+|---|---|---|
+| **Real corpus** (3 PDFs, ~10 figures) | 10 | **40% OK + 50% PARTIAL** |
+| **Value fidelity** (extracted numbers vs truth) | 15 | 5/5 kinds at <0.15 MAE (box at 0.99) |
+| **Adversarial** (deliberately ambiguous figures) | 18 | **88.9%** (was 55% before fixes) |
+| **Multi-panel** (sub-plot grids) | end-to-end | works after diagram-self-rejection fix |
+
+Six real bugs found and fixed (each from looking at an actual failure):
+* Bar extractor accepted box plots as bars → added baseline-cluster check
+* Stacked too conservative → bumped credibility bonus
+* Pie outside-bg check broke on legends → skip corners
+* Close-call tiebreaker promoted irrelevant kinds → require in close-call window
+* Diagram extracted 7 fake nodes from grouped bars → require ≥30% real labels
+* Multi-panel detection slow on real PDFs (1750×1333) → auto-downscale to ≤900 px
+
+See `RESEARCH_NOTES_LIMITS.md` for the full writeup including
+"where we are NOT at the limit" and what to attack next.
+
 ### Round 4 reliability push: parallel extraction (Oct 2026)
 
 User asked: can the specialists be made completely reliable without

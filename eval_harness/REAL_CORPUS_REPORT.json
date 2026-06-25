@@ -1,0 +1,196 @@
+{
+  "n_figures": 10,
+  "n_ok": 4,
+  "n_partial": 5,
+  "n_decorative": 0,
+  "n_other": 1,
+  "total_elapsed_s": 567.5,
+  "by_kind": {
+    "stacked_bar_chart": 1,
+    "flow_diagram": 5,
+    "scatter_plot": 2,
+    "box_plot": 2
+  },
+  "by_status": {
+    "partial": 5,
+    "no_bars": 1,
+    "ok": 4
+  },
+  "per_paper": [
+    {
+      "slug": "baden-bohm-2023",
+      "n_figs_extracted": 4,
+      "by_status": {
+        "partial": 2,
+        "no_bars": 1,
+        "ok": 1
+      },
+      "by_kind": {
+        "stacked_bar_chart": 1,
+        "flow_diagram": 1,
+        "scatter_plot": 1,
+        "box_plot": 1
+      },
+      "elapsed_s": 205.86,
+      "n_ok": 1,
+      "n_partial": 2,
+      "n_unsupported_decorative": 0,
+      "pct_ok": 25.0
+    },
+    {
+      "slug": "carceles-rodriguez-et-al-2022",
+      "n_figs_extracted": 2,
+      "by_status": {
+        "ok": 2
+      },
+      "by_kind": {
+        "box_plot": 1,
+        "flow_diagram": 1
+      },
+      "elapsed_s": 48.989999999999995,
+      "n_ok": 2,
+      "n_partial": 0,
+      "n_unsupported_decorative": 0,
+      "pct_ok": 100.0
+    },
+    {
+      "slug": "cast-model-paper-2026",
+      "n_figs_extracted": 4,
+      "by_status": {
+        "partial": 3,
+        "ok": 1
+      },
+      "by_kind": {
+        "flow_diagram": 3,
+        "scatter_plot": 1
+      },
+      "elapsed_s": 311.78999999999996,
+      "n_ok": 1,
+      "n_partial": 3,
+      "n_unsupported_decorative": 0,
+      "pct_ok": 25.0
+    }
+  ],
+  "rows": [
+    {
+      "slug": "baden-bohm-2023",
+      "fig_idx": 0,
+      "img": "p002_x7.png",
+      "caption": "Proportions of land use for the business as usual scenario in the study areas (A",
+      "kind": "stacked_bar_chart",
+      "status": "partial",
+      "confidence": 0.15833333333333333,
+      "n_extractors_run": 8,
+      "arbitration_reason": "highest quality (2.158) was stacked_bar_chart/partial",
+      "elapsed_s": 104.43
+    },
+    {
+      "slug": "baden-bohm-2023",
+      "fig_idx": 1,
+      "img": "p003_x30.png",
+      "caption": "The acquisition of landscape data started with the choice of study areas. The la",
+      "kind": "flow_diagram",
+      "status": "no_bars",
+      "confidence": 0.0,
+      "n_extractors_run": 3,
+      "arbitration_reason": "caption-decisive: 2 keyword hits for map; used reflective path",
+      "elapsed_s": 1.67
+    },
+    {
+      "slug": "baden-bohm-2023",
+      "fig_idx": 2,
+      "img": "p004_x64.png",
+      "caption": "The acquisition of landscape data started with the choice of study areas. The la",
+      "kind": "scatter_plot",
+      "status": "partial",
+      "confidence": 0.2375,
+      "n_extractors_run": 2,
+      "arbitration_reason": "caption-decisive: 2 keyword hits for map; used reflective path",
+      "elapsed_s": 84.63
+    },
+    {
+      "slug": "baden-bohm-2023",
+      "fig_idx": 3,
+      "img": "p005_x84.png",
+      "caption": "Bumblebee colonies per hectare (log10-transformed, i.e., log10(colonies + 1)) in",
+      "kind": "box_plot",
+      "status": "ok",
+      "confidence": 0.85,
+      "n_extractors_run": 3,
+      "arbitration_reason": "caption-decisive: 2 keyword hits for bar_chart; used reflective path",
+      "elapsed_s": 15.13
+    },
+    {
+      "slug": "carceles-rodriguez-et-al-2022",
+      "fig_idx": 0,
+      "img": "p003_x93.png",
+      "caption": "Monthly average maximum, minimum and mean air temperature (Tmax, Tmin and Tmean)",
+      "kind": "box_plot",
+      "status": "ok",
+      "confidence": 0.85,
+      "n_extractors_run": 8,
+      "arbitration_reason": "highest quality (5.65) was box_plot/ok",
+      "elapsed_s": 25.0
+    },
+    {
+      "slug": "carceles-rodriguez-et-al-2022",
+      "fig_idx": 1,
+      "img": "p003_x94.png",
+      "caption": "Monthly average maximum, minimum and mean air temperature (Tmax, Tmin and Tmean)",
+      "kind": "flow_diagram",
+      "status": "ok",
+      "confidence": 0.3866666666666667,
+      "n_extractors_run": 8,
+      "arbitration_reason": "highest quality (4.387) was flow_diagram/ok",
+      "elapsed_s": 23.99
+    },
+    {
+      "slug": "cast-model-paper-2026",
+      "fig_idx": 0,
+      "img": "p006_x329.png",
+      "caption": "Observed (dots) vs simulated (lines) a) WSA (%) and b) SOC stock distribution fo",
+      "kind": "flow_diagram",
+      "status": "partial",
+      "confidence": 0.4,
+      "n_extractors_run": 8,
+      "arbitration_reason": "highest quality (2.4) was flow_diagram/partial",
+      "elapsed_s": 88.93
+    },
+    {
+      "slug": "cast-model-paper-2026",
+      "fig_idx": 1,
+      "img": "p006_x330.png",
+      "caption": "presents the observed and simulated WSA among the aggregate types AC1, AC2 and A",
+      "kind": "flow_diagram",
+      "status": "partial",
+      "confidence": 0.4,
+      "n_extractors_run": 8,
+      "arbitration_reason": "highest quality (2.4) was flow_diagram/partial",
+      "elapsed_s": 72.45
+    },
+    {
+      "slug": "cast-model-paper-2026",
+      "fig_idx": 2,
+      "img": "p007_x348.png",
+      "caption": "presents the observed and simulated WSA among the aggregate types AC1, AC2 and A",
+      "kind": "scatter_plot",
+      "status": "ok",
+      "confidence": 0.85,
+      "n_extractors_run": 8,
+      "arbitration_reason": "highest quality (5.35) was scatter_plot/ok",
+      "elapsed_s": 71.28
+    },
+    {
+      "slug": "cast-model-paper-2026",
+      "fig_idx": 3,
+      "img": "p008_x371.png",
+      "caption": "presents the SOC distribution as was simulated by the CAST model and also, the 2",
+      "kind": "flow_diagram",
+      "status": "partial",
+      "confidence": 0.4,
+      "n_extractors_run": 8,
+      "arbitration_reason": "highest quality (2.4) was flow_diagram/partial",
+      "elapsed_s": 79.13
+    }
+  ]
+}

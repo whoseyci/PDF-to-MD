@@ -1,0 +1,387 @@
+{
+  "rows": [
+    {
+      "kind": "bar",
+      "seed": 0,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_bar_mae": 0.09,
+        "per_bar_pct_err": 0.4,
+        "values_recovered": 5,
+        "n_truth": 5
+      },
+      "direct_t": 0.41,
+      "smart_picked": "bar_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_bar_mae": 0.09,
+        "per_bar_pct_err": 0.4,
+        "values_recovered": 5,
+        "n_truth": 5
+      },
+      "smart_t": 6.57,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "bar",
+      "seed": 1,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_bar_mae": 0.09,
+        "per_bar_pct_err": 0.4,
+        "values_recovered": 5,
+        "n_truth": 5
+      },
+      "direct_t": 0.37,
+      "smart_picked": "bar_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_bar_mae": 0.09,
+        "per_bar_pct_err": 0.4,
+        "values_recovered": 5,
+        "n_truth": 5
+      },
+      "smart_t": 6.62,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "bar",
+      "seed": 2,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_bar_mae": 0.05,
+        "per_bar_pct_err": 0.3,
+        "values_recovered": 5,
+        "n_truth": 5
+      },
+      "direct_t": 0.4,
+      "smart_picked": "bar_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_bar_mae": 0.05,
+        "per_bar_pct_err": 0.3,
+        "values_recovered": 5,
+        "n_truth": 5
+      },
+      "smart_t": 6.44,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "pie",
+      "seed": 0,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_slice_mae": 0.06,
+        "n_recovered": 5,
+        "n_truth": 5
+      },
+      "direct_t": 0.01,
+      "smart_picked": "pie_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_slice_mae": 0.06,
+        "n_recovered": 5,
+        "n_truth": 5
+      },
+      "smart_t": 0.88,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "pie",
+      "seed": 1,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_slice_mae": 0.11,
+        "n_recovered": 4,
+        "n_truth": 4
+      },
+      "direct_t": 0.01,
+      "smart_picked": "pie_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_slice_mae": 0.11,
+        "n_recovered": 4,
+        "n_truth": 4
+      },
+      "smart_t": 0.88,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "pie",
+      "seed": 2,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_slice_mae": 0.08,
+        "n_recovered": 5,
+        "n_truth": 5
+      },
+      "direct_t": 0.01,
+      "smart_picked": "pie_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_slice_mae": 0.08,
+        "n_recovered": 5,
+        "n_truth": 5
+      },
+      "smart_t": 0.87,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "line",
+      "seed": 0,
+      "direct_status": "ok",
+      "direct_score": {
+        "n_series_recovered": 2,
+        "n_truth_series": 2,
+        "rmse_y_mean": 0.14
+      },
+      "direct_t": 0.35,
+      "smart_picked": "line_plot",
+      "smart_status": "ok",
+      "smart_score": {
+        "n_series_recovered": 2,
+        "n_truth_series": 2,
+        "rmse_y_mean": 0.14
+      },
+      "smart_t": 1.09,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "line",
+      "seed": 1,
+      "direct_status": "ok",
+      "direct_score": {
+        "n_series_recovered": 2,
+        "n_truth_series": 2,
+        "rmse_y_mean": 0.09
+      },
+      "direct_t": 0.36,
+      "smart_picked": "line_plot",
+      "smart_status": "ok",
+      "smart_score": {
+        "n_series_recovered": 2,
+        "n_truth_series": 2,
+        "rmse_y_mean": 0.09
+      },
+      "smart_t": 1.09,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "line",
+      "seed": 2,
+      "direct_status": "ok",
+      "direct_score": {
+        "n_series_recovered": 2,
+        "n_truth_series": 2,
+        "rmse_y_mean": 0.12
+      },
+      "direct_t": 0.37,
+      "smart_picked": "line_plot",
+      "smart_status": "ok",
+      "smart_score": {
+        "n_series_recovered": 2,
+        "n_truth_series": 2,
+        "rmse_y_mean": 0.12
+      },
+      "smart_t": 1.1,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "box",
+      "seed": 0,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_box_mae_median": 1.02,
+        "n_recovered": 4,
+        "n_truth": 4
+      },
+      "direct_t": 0.33,
+      "smart_picked": "box_plot",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_box_mae_median": 1.02,
+        "n_recovered": 4,
+        "n_truth": 4
+      },
+      "smart_t": 6.44,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "box",
+      "seed": 1,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_box_mae_median": 0.95,
+        "n_recovered": 4,
+        "n_truth": 4
+      },
+      "direct_t": 0.35,
+      "smart_picked": "box_plot",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_box_mae_median": 0.95,
+        "n_recovered": 4,
+        "n_truth": 4
+      },
+      "smart_t": 6.5,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "box",
+      "seed": 2,
+      "direct_status": "ok",
+      "direct_score": {
+        "per_box_mae_median": 1.0,
+        "n_recovered": 4,
+        "n_truth": 4
+      },
+      "direct_t": 0.38,
+      "smart_picked": "box_plot",
+      "smart_status": "ok",
+      "smart_score": {
+        "per_box_mae_median": 1.0,
+        "n_recovered": 4,
+        "n_truth": 4
+      },
+      "smart_t": 6.91,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "stacked",
+      "seed": 0,
+      "direct_status": "ok",
+      "direct_score": {
+        "mae_per_bar_total": 0.01,
+        "n_recovered_bars": 4,
+        "n_truth_bars": 4
+      },
+      "direct_t": 0.5,
+      "smart_picked": "stacked_bar_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "mae_per_bar_total": 0.01,
+        "n_recovered_bars": 4,
+        "n_truth_bars": 4
+      },
+      "smart_t": 6.43,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "stacked",
+      "seed": 1,
+      "direct_status": "ok",
+      "direct_score": {
+        "mae_per_bar_total": 0.02,
+        "n_recovered_bars": 4,
+        "n_truth_bars": 4
+      },
+      "direct_t": 0.5,
+      "smart_picked": "stacked_bar_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "mae_per_bar_total": 0.02,
+        "n_recovered_bars": 4,
+        "n_truth_bars": 4
+      },
+      "smart_t": 5.91,
+      "smart_picked_right": true
+    },
+    {
+      "kind": "stacked",
+      "seed": 2,
+      "direct_status": "ok",
+      "direct_score": {
+        "mae_per_bar_total": 0.29,
+        "n_recovered_bars": 4,
+        "n_truth_bars": 4
+      },
+      "direct_t": 0.5,
+      "smart_picked": "stacked_bar_chart",
+      "smart_status": "ok",
+      "smart_score": {
+        "mae_per_bar_total": 0.29,
+        "n_recovered_bars": 4,
+        "n_truth_bars": 4
+      },
+      "smart_t": 6.61,
+      "smart_picked_right": true
+    }
+  ],
+  "by_kind": {
+    "bar": {
+      "n": 3,
+      "direct_ok": 3,
+      "smart_picked_right": 3,
+      "direct_errs": [
+        0.09,
+        0.09,
+        0.05
+      ],
+      "smart_errs": [
+        0.09,
+        0.09,
+        0.05
+      ]
+    },
+    "pie": {
+      "n": 3,
+      "direct_ok": 3,
+      "smart_picked_right": 3,
+      "direct_errs": [
+        0.06,
+        0.11,
+        0.08
+      ],
+      "smart_errs": [
+        0.06,
+        0.11,
+        0.08
+      ]
+    },
+    "line": {
+      "n": 3,
+      "direct_ok": 3,
+      "smart_picked_right": 3,
+      "direct_errs": [
+        0.14,
+        0.09,
+        0.12
+      ],
+      "smart_errs": [
+        0.14,
+        0.09,
+        0.12
+      ]
+    },
+    "box": {
+      "n": 3,
+      "direct_ok": 3,
+      "smart_picked_right": 3,
+      "direct_errs": [
+        1.02,
+        0.95,
+        1.0
+      ],
+      "smart_errs": [
+        1.02,
+        0.95,
+        1.0
+      ]
+    },
+    "stacked": {
+      "n": 3,
+      "direct_ok": 3,
+      "smart_picked_right": 3,
+      "direct_errs": [
+        0.01,
+        0.02,
+        0.29
+      ],
+      "smart_errs": [
+        0.01,
+        0.02,
+        0.29
+      ]
+    }
+  }
+}

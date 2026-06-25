@@ -159,6 +159,30 @@ def extract_diagram(image_path: Path,
         edges = _detect_edges(edge_mask, labeled)
         result.raw_edge_count = len(edges)
 
+        # Self-rejection: if fewer than 30% of node labels are real
+        # (i.e. most are "Node N" placeholders), OCR found no real
+        # labels -- this is almost certainly NOT a diagram. Real
+        # flowcharts have at least 1/3 of boxes labeled with text.
+        # Also require labels to be MEANINGFUL (>= 2 chars + at
+        # least one letter character); single-char OCR garbage like
+        # "i", "e", "." shouldn't count.
+        def _is_real_label(s: str) -> bool:
+            if s.startswith("Node "): return False
+            stripped = s.strip()
+            if len(stripped) < 2: return False
+            if not any(c.isalpha() for c in stripped): return False
+            return True
+        labeled_nodes = sum(1 for n in labeled if _is_real_label(n.label))
+        label_frac = labeled_nodes / max(1, len(labeled))
+        if labeled and label_frac < 0.30:
+            result.status = "no_nodes"
+            result.reason = (f"only {labeled_nodes}/{len(labeled)} "
+                              f"({round(100*label_frac)}%) candidate nodes "
+                              "have real labels; not a real diagram")
+            result.confidence = 0.0
+            result.elapsed_seconds = round(time.time() - t0, 3)
+            return result
+
         # If no edges found, still return the nodes -- maybe it was just
         # a labeled box diagram.
         result.nodes = labeled
@@ -173,7 +197,10 @@ def extract_diagram(image_path: Path,
             result.status = "ok"
             result.reason = (f"extracted {len(labeled)} nodes + "
                               f"{len(edges)} edges")
-            result.confidence = 0.6 if len(edges) >= len(labeled) - 1 else 0.4
+            # Boost confidence when most nodes are labeled (real diagrams).
+            label_frac = labeled_nodes / max(1, len(labeled))
+            base_conf = 0.6 if len(edges) >= len(labeled) - 1 else 0.4
+            result.confidence = base_conf * (0.5 + 0.5 * label_frac)
 
     except Exception as e:
         result.status = "error"
