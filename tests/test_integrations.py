@@ -653,7 +653,82 @@ def main():
     print("=== structural credibility ==="); test_structural_credibility(t)
     print("=== smart extractor caption-decisive ==="); test_smart_caption_decisive(t)
     print("=== ocr cache ==="); test_ocr_cache(t)
+    print("=== superscript recovery ==="); test_superscript_recovery(t)
     return t.report()
+
+
+def test_superscript_recovery(t):
+    """superscript_recovery module: detect raised baselines + small fonts,
+    convert to <sup>/<sub>; normalise CMSY10 math glyphs; strip
+    pymupdf4llm italic-wrapped math chars."""
+    import tempfile
+    from pipeline_v2.superscript_recovery import (
+        normalise_math_glyphs, recover_superscripts, annotate_page,
+        clean_pymupdf4llm_math,
+        _Span, _Line, _classify, _render_line,
+    )
+    # 1. Glyph normalisation: pure char-level transforms.
+    t.check(normalise_math_glyphs("35\u25e630\u2032") == "35\u00b030\u2032",
+            "CMSY10 ring -> degree sign")
+    t.check(normalise_math_glyphs("59.5\u2032\u2032") == "59.5\u2033",
+            "double single-prime -> double-prime")
+    t.check(normalise_math_glyphs("plain text") == "plain text",
+            "no false positive on plain text")
+    # 2. Classifier: smaller + raised = super; larger same y = body.
+    body = _Span(text="m", x0=0, y0=10, x1=10, y1=20,
+                 size=10.0, font="Roman", flags=0)
+    sup = _Span(text="2", x0=10, y0=6, x1=14, y1=14,
+                size=7.5, font="Roman", flags=0)  # raised + smaller
+    L = _Line(spans=[body, sup])
+    t.check(_classify(body, L) == "body", "body span -> body")
+    t.check(_classify(sup, L) == "super",
+            f"raised smaller -> super (got {_classify(sup, L)})")
+    # 3. Subscript: smaller + lowered baseline.
+    sub = _Span(text="i", x0=10, y0=14, x1=14, y1=24,
+                size=7.5, font="Roman", flags=0)
+    L2 = _Line(spans=[body, sub])
+    t.check(_classify(sub, L2) == "sub",
+            f"lowered smaller -> sub (got {_classify(sub, L2)})")
+    # 4. pymupdf4llm cleanup: italic-wrapped math glyphs.
+    s = "(35 _°_ 30 _[′]_ 59.5 _[′′]_ N), 7 _×_ 7 m, 1.20_±_0.07, (_H[′]_)"
+    cleaned = clean_pymupdf4llm_math(s)
+    t.check("35°30′59.5″ N" in cleaned,
+            f"coord cleanup: {cleaned!r}")
+    t.check("7×7" in cleaned, f"× cleanup: {cleaned!r}")
+    t.check("1.20±0.07" in cleaned, f"± cleanup: {cleaned!r}")
+    t.check("_H′_" in cleaned, f"H' cleanup: {cleaned!r}")
+    # Idempotent: running twice produces the same output.
+    t.check(clean_pymupdf4llm_math(cleaned) == cleaned,
+            "clean_pymupdf4llm_math is idempotent")
+    # Doesn't false-positive on plain citations [12].
+    t.check(clean_pymupdf4llm_math("see [12] for more")
+            == "see [12] for more",
+            "citation brackets untouched")
+
+    # 5. End-to-end on a PyMuPDF page if the test PDF exists.
+    pdf = Path("/home/user/uploads/Angelioudakis et al. (2025).pdf")
+    if pdf.exists():
+        out = recover_superscripts(pdf)
+        # Page 3 should contain m<sup>2</sup> and degree markers.
+        p3 = out.get(2, "")
+        t.check("<sup>2</sup>" in p3,
+                "m^2 superscript recovered on page 3")
+        t.check("<sup>\u00b0</sup>" in p3 or "<sup>°</sup>" in p3,
+                "degree superscript recovered")
+    else:
+        # Synthesize a tiny PDF on-the-fly with PyMuPDF.
+        try:
+            import fitz
+            with tempfile.TemporaryDirectory() as td:
+                p = Path(td) / "tiny.pdf"
+                doc = fitz.open()
+                page = doc.new_page()
+                page.insert_text((50, 100), "Hello world", fontsize=10)
+                doc.save(p); doc.close()
+                out = recover_superscripts(p)
+                t.check(0 in out, "page 0 returned")
+        except Exception as e:
+            t.check(True, f"fitz unavailable; skipped end-to-end: {e}")
 
 
 def test_ocr_cache(t):

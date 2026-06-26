@@ -666,14 +666,42 @@ def convert_pdf(pdf_path, out_root, force=False):
 
 def _post_convert_enrich(pdf_path, out_dir, *,
                           enrich_refs=False, verify_refs=False,
-                          export_docling=False):
+                          export_docling=False,
+                          recover_supsub=False):
     """Optional post-processing: refextract enrichment, ref verification,
-    Docling-compatible export. Each step is independent and opt-in.
+    Docling-compatible export, super/subscript recovery. Each step is
+    independent and opt-in.
     """
     paper_json = out_dir / "paper.json"
     if not paper_json.exists():
         return
     paper = json.loads(paper_json.read_text(encoding="utf-8"))
+
+    if recover_supsub:
+        md_path = out_dir / "paper.md"
+        if md_path.exists():
+            try:
+                from pipeline_v2.superscript_recovery import (
+                    splice_supsub_into_markdown, clean_pymupdf4llm_math,
+                )
+                md = md_path.read_text(encoding="utf-8")
+                # 1. Clean pymupdf4llm's italic-wrapped math glyphs
+                #    (cheap pure-regex, idempotent, no PDF re-read).
+                before_clean = md
+                md = clean_pymupdf4llm_math(md)
+                n_cleaned = sum(1 for a, b in zip(before_clean.splitlines(),
+                                                   md.splitlines())
+                                 if a != b)
+                # 2. Walk PyMuPDF spans and splice in <sup>/<sub>
+                #    tags where the source PDF says so.
+                md = splice_supsub_into_markdown(
+                    {0: md}, pdf_path, html_supsub=True)[0]
+                md_path.write_text(md, encoding="utf-8")
+                n_sup = md.count("<sup>") + md.count("<sub>")
+                print(f"   recovered super/subscripts: cleaned "
+                      f"{n_cleaned} lines, spliced {n_sup} sup/sub tags")
+            except Exception as e:
+                print(f"   supsub recovery failed: {e}")
 
     if enrich_refs:
         try:
@@ -725,6 +753,11 @@ def main():
                      help="Verify refs against Crossref/OpenAlex (slow, network)")
     ap.add_argument("--docling", action="store_true",
                      help="Also emit paper.docling.json (DoclingDocument)")
+    ap.add_argument("--recover-supsub", action="store_true",
+                     help="Splice <sup>/<sub> tags into paper.md by walking "
+                          "PyMuPDF spans (recovers m^2, 35°30'59.5'', H', "
+                          "etc.). Always normalises math-font glyphs like "
+                          "CMSY10's degree-ring to U+00B0.")
     args = ap.parse_args()
     out_root = Path(args.out)
     out_root.mkdir(exist_ok=True)
@@ -740,6 +773,7 @@ def main():
                     enrich_refs=args.enrich_refs,
                     verify_refs=args.verify_refs,
                     export_docling=args.docling,
+                    recover_supsub=args.recover_supsub,
                 )
         except Exception as e:
             import traceback

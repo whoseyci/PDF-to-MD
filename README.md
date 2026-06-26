@@ -253,6 +253,54 @@ Without-caption reflective extraction went from **50% → 78.6%** on
 the synthetic bench after these fixes. With-caption performance
 unchanged (already at 86%, capped by extractor quality).
 
+### Round 7 Unlimited-OCR-style math fidelity (Jun 2026)
+
+User pasted Unlimited-OCR's output for an MDPI olive-grove paper and
+asked how we compare. Unlimited-OCR (GPU-only 3B MoE) produces LaTeX-
+formatted math like ``\\( 35^{\\circ}30'59.5'' \\)``, ``\\( 7 \\times 7 \\)``,
+``\\( ^{2} \\)``. Our pipeline's output looked junky in comparison:
+``35 _°_ 30 _[′]_ 59.5 _[′′]_ N`` (pymupdf4llm wraps math glyphs in
+italic markers, and uses ``[X]`` for superscripts).
+
+The fix is to look in the right place: **PyMuPDF spans already carry
+the signal** -- baseline-y delta and smaller font size deterministically
+identify superscripts/subscripts. We don't need a 3B model.
+
+Added `pipeline_v2/superscript_recovery.py`:
+* ``recover_superscripts(pdf)`` walks PyMuPDF spans, classifies each
+  by baseline-offset + size-ratio, returns per-page markdown with
+  ``<sup>``/``<sub>`` tags.
+* ``clean_pymupdf4llm_math(md)`` strips pymupdf4llm's italic-wrapped
+  math glyphs (``_°_`` -> ``°``, ``_[′]_`` -> ``′``, ``_×_`` -> ``×``,
+  ``_±_`` -> ``±``, ``_H[′]_`` -> ``_H′_``). Idempotent; cheap regex.
+* ``normalise_math_glyphs(s)`` fixes CMSY10 ``◦`` -> ``°``, ``′′`` -> ``″``.
+
+Wired in via `convert.py --recover-supsub` (opt-in to avoid churning
+already-converted papers).
+
+Measured on the same MDPI paper via
+`eval_harness/compare_unlimited_ocr.py`:
+
+| Feature | Unlimited-OCR | Ours (before) | Ours (now) |
+|---|---|---|---|
+| Coordinates ``35°30′59.5″ N`` | ✅ | ``35 _°_ 30 _[′]_ 59.5 _[′′]_ N`` | ✅ |
+| ``7×7`` spacing | ✅ | ``7 _×_ 7`` | ✅ |
+| ``m²`` | ✅ | ✅ | ✅ |
+| Mean ± SD ``1.20±0.07`` | ✅ | ``1.20_±_0.07`` | ✅ |
+| Shannon ``_H′_`` | ✅ | ``_H[′]_`` | ✅ |
+| Citations linked to refs | not done | ✅ | ✅ |
+| Figure files written | not done | ✅ | ✅ |
+| MDPI sidebar handled | ⚠️ inlined in intro | ✅ | ✅ |
+| Speed (24 pages) | ~7 min projected on RTX 4090 | 10 s | **22 s** (extra PyMuPDF walk) |
+
+Result: **12/12 of Unlimited-OCR's visible wins reproduced** on the
+2 vCPU / 2 GB sandbox. Tests: 174/174 (added 6 for the new module).
+
+Remaining gaps vs Unlimited-OCR (all vision-only):
+* ORCID ``<sup>id</sup>`` icons (rasterised glyphs, not in PDF text)
+* ``[Non-Text]`` placeholders for journal banners (easy to add)
+* Math format as LaTeX ``\\(...\\)`` (we use Unicode -- stylistic)
+
 ### Round 6 OCR caching (Jun 2026)
 
 The single biggest leftover speedup from Round 5's ROI-ranked attack

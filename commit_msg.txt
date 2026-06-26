@@ -1,0 +1,81 @@
+Round 7: Match Unlimited-OCR's math fidelity (without a GPU)
+
+User pasted Baidu Unlimited-OCR's verbatim output for the first 3 pages
+of an MDPI olive-grove paper and asked how our pipeline compares. The
+visible gap was math notation: Unlimited-OCR produces clean LaTeX like
+``\\( 35^{\\circ}30'59.5'' \\)``, ``\\( 7 \\times 7 \\)``,
+``\\( ^{2} \\)``; ours emitted ``35 _°_ 30 _[′]_ 59.5 _[′′]_ N``
+(pymupdf4llm wraps math glyphs in italic markers and uses ``[X]`` for
+superscripts).
+
+Key insight: the signal is already in PyMuPDF spans. Each glyph carries
+a font size and a baseline-y; superscripts are deterministically the
+smaller-font + raised-baseline spans. No 3B model needed.
+
+New module: pipeline_v2/superscript_recovery.py
+-----------------------------------------------
+* recover_superscripts(pdf): walks PyMuPDF spans, returns per-page
+  markdown with <sup>/<sub> tags where the source's baseline shifts.
+  Classifier: size <= 0.85 * line median AND y-offset >= 0.15 * size.
+* clean_pymupdf4llm_math(md): strips pymupdf4llm's italic-wrapped math
+  glyphs:
+    _°_       -> °
+    _[′]_     -> ′           (and ′′ -> ″ first)
+    _[′′]_    -> ″
+    _×_       -> ×
+    _±_       -> ±
+    _H[′]_    -> _H′_        (italic letter + bracket-superscript)
+  Idempotent, regex-only, no PDF re-read.
+* normalise_math_glyphs(s): char-level fixups for CMSY10's ``◦`` (LaTeX
+  \\circ) -> proper U+00B0 degree sign; double-prime pair -> U+2033.
+* splice_supsub_into_markdown(md, pdf): augments existing markdown with
+  <sup>/<sub> by anchor-matching PyMuPDF span context (best-effort).
+
+Wired into convert.py via --recover-supsub (opt-in; doesn't disturb
+already-converted papers).
+
+Bench: eval_harness/compare_unlimited_ocr.py
+--------------------------------------------
+Re-runs the full pipeline on the same MDPI PDF the user pasted from,
+checks 12 features Unlimited-OCR produced cleanly. Reports which we now
+match and which we still don't.
+
+Score on Angelioudakis et al. (2025):
+
+  12/12 of Unlimited-OCR's visible wins reproduced.
+   ✓ 35°30′59.5″ N
+   ✓ 7×7 m
+   ✓ 3200 m²
+   ✓ 1.20±0.07
+   ✓ Shannon _H′_
+   ✓ Latin binomials italicised
+   ✓ Citations [[1](#ref-001)] linked to refs
+   ✓ Author list as structured field
+   ✓ Figure files written to ./figures/
+   ✓ Page-break markers
+   ✓ MDPI sidebar correctly excluded from intro flow
+   ✓ "1. Introduction" not duplicated (Unlimited-OCR DOES duplicate it)
+
+Pipeline ran in 22s on 2 vCPU / 2 GB sandbox vs ~7 min projected for
+Unlimited-OCR on RTX 4090.
+
+Gaps we still have vs Unlimited-OCR (all vision-only):
+  - ORCID <sup>id</sup> icons (rasterised, not in PDF text stream)
+  - [Non-Text] placeholders for journal banners
+  - Math notation as LaTeX \\(...\\) -- we use Unicode (stylistic choice)
+  - Subfigure inline image refs
+
+Tests
+-----
+174/174 (added 6 for: glyph normaliser, super/sub classifier, sub/sup
+end-to-end on the test PDF, pymupdf4llm cleanup, idempotency,
+citation-bracket non-regression).
+
+Files
+-----
+  +  pipeline_v2/superscript_recovery.py (NEW, ~300 LOC)
+  M  pipeline_v2/convert.py              (+ --recover-supsub flag)
+  M  tests/test_integrations.py          (+ test_superscript_recovery)
+  +  eval_harness/compare_unlimited_ocr.py
+  +  eval_harness/UNLIMITED_OCR_COMPARISON.md
+  M  README.md                           (Round 7 section)
