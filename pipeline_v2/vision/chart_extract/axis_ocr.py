@@ -1,6 +1,24 @@
-"""tesseract-based axis detection + linear pixel↔value calibration."""
+"""tesseract-based axis detection + linear pixel↔value calibration.
+
+Module-level OCR cache
+----------------------
+`ocr_words(path)` memoises its result on `(abs_path, mtime, size)`. The
+parallel extractor runs 8+ specialists on the same figure, and each one
+called `ocr_words` independently -- a benchmark showed 11 OCR calls per
+figure (multipanel adds a few), 62% of total wall time. Sharing a single
+OCR pass across all specialists collapses that overhead.
+
+Cache invalidates automatically when a file is rewritten with a new
+mtime/size (so downscaled temp files don't collide). Use
+`clear_ocr_cache()` between unrelated batches to bound memory; the
+cache is small (a few hundred Words per entry) but unbounded growth in
+a long-running server isn't desirable.
+"""
 from __future__ import annotations
+import os
 import re
+import threading
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -16,6 +34,38 @@ except Exception:
     _HAS_TESS = False
 
 _NUM_RE = re.compile(r"^-?\d+(?:[.,]\d+)?$")
+
+# --- Cache plumbing -----------------------------------------------------
+_OCR_CACHE_LOCK = threading.Lock()
+_OCR_CACHE: "OrderedDict[tuple, List[Word]]" = OrderedDict()
+_OCR_CACHE_MAX = 128
+
+
+def _ocr_cache_key(image_path: Path):
+    """Stable key including mtime+size so a rewritten file invalidates."""
+    p = os.path.abspath(str(image_path))
+    try:
+        st = os.stat(p)
+        return (p, int(st.st_mtime_ns), int(st.st_size))
+    except OSError:
+        return (p, 0, 0)
+
+
+def clear_ocr_cache() -> None:
+    """Drop all cached OCR results. Safe to call between batches/tests."""
+    with _OCR_CACHE_LOCK:
+        _OCR_CACHE.clear()
+
+
+def get_ocr_cache_stats() -> dict:
+    """Inspect cache state (hits/misses tracked via attributes)."""
+    with _OCR_CACHE_LOCK:
+        return {
+            "entries": len(_OCR_CACHE),
+            "max": _OCR_CACHE_MAX,
+            "hits": getattr(ocr_words, "_cache_hits", 0),
+            "misses": getattr(ocr_words, "_cache_misses", 0),
+        }
 
 
 @dataclass
@@ -41,32 +91,88 @@ class AxisCalibration:
 
 
 def ocr_words(image_path: Path) -> List[Word]:
-    if not _HAS_TESS: return []
-    try: img = Image.open(image_path).convert("RGB")
-    except Exception: return []
-    w, h = img.size
-    scale = 1
-    if max(w, h) < 800:
-        scale = max(1, 800 // max(w, h) + 1)
-        img = img.resize((w * scale, h * scale), Image.LANCZOS)
-    try:
-        data = pytesseract.image_to_data(img, output_type=Output.DICT, config="--psm 6")
-    except Exception:
-        return []
-    words = []
-    for i in range(len(data["text"])):
-        t = (data["text"][i] or "").strip()
-        if not t: continue
-        try: conf = float(data["conf"][i])
-        except (TypeError, ValueError): conf = -1.0
-        if conf < 30: continue
-        words.append(Word(text=t,
-                            x=int(data["left"][i]) // scale,
-                            y=int(data["top"][i]) // scale,
-                            w=max(1, int(data["width"][i]) // scale),
-                            h=max(1, int(data["height"][i]) // scale),
-                            conf=conf))
-    return words
+    """OCR an image with a per-process cache keyed on (path,mtime,size).
+
+    All chart specialists (simple_bars, line_plot, scatter_plot, ...) call
+    this on the same path; without a cache that's 8+ Tesseract invocations
+    per figure. The cache returns the same list reference -- callers MUST
+    treat it as read-only.
+    """
+    key = _ocr_cache_key(image_path)
+    with _OCR_CACHE_LOCK:
+        hit = _OCR_CACHE.get(key)
+        if hit is not None:
+            _OCR_CACHE.move_to_end(key)
+            ocr_words._cache_hits = getattr(ocr_words, "_cache_hits", 0) + 1
+            return hit
+    ocr_words._cache_misses = getattr(ocr_words, "_cache_misses", 0) + 1
+    if not _HAS_TESS:
+        result: List[Word] = []
+    else:
+        try:
+            img = Image.open(image_path).convert("RGB")
+        except Exception:
+            result = []
+        else:
+            w, h = img.size
+            scale = 1
+            if max(w, h) < 800:
+                scale = max(1, 800 // max(w, h) + 1)
+                img = img.resize((w * scale, h * scale), Image.LANCZOS)
+            try:
+                data = pytesseract.image_to_data(
+                    img, output_type=Output.DICT, config="--psm 6")
+            except Exception:
+                result = []
+            else:
+                result = []
+                for i in range(len(data["text"])):
+                    t = (data["text"][i] or "").strip()
+                    if not t:
+                        continue
+                    try:
+                        conf = float(data["conf"][i])
+                    except (TypeError, ValueError):
+                        conf = -1.0
+                    if conf < 30:
+                        continue
+                    result.append(Word(
+                        text=t,
+                        x=int(data["left"][i]) // scale,
+                        y=int(data["top"][i]) // scale,
+                        w=max(1, int(data["width"][i]) // scale),
+                        h=max(1, int(data["height"][i]) // scale),
+                        conf=conf,
+                    ))
+    with _OCR_CACHE_LOCK:
+        _OCR_CACHE[key] = result
+        _OCR_CACHE.move_to_end(key)
+        while len(_OCR_CACHE) > _OCR_CACHE_MAX:
+            _OCR_CACHE.popitem(last=False)
+    return result
+
+
+# Initial counter state so get_ocr_cache_stats() doesn't AttributeError.
+ocr_words._cache_hits = 0
+ocr_words._cache_misses = 0
+
+
+def cached_image_to_string(image_path) -> str:
+    """Drop-in replacement for `pytesseract.image_to_string(Image.open(p))`.
+
+    Synthesises the string by joining cached `ocr_words(p)` results. The
+    word list is whatever Tesseract returned at conf>=30, so very-low-
+    confidence noise that `image_to_string` would have kept is dropped.
+    In practice this is what callers want -- they use the text for
+    keyword matches (`'fig'`, `'figure'`, etc.) which dominate the high-
+    confidence band anyway. The cache means N callers on the same image
+    cost one OCR pass, not N.
+    """
+    p = Path(image_path)
+    words = ocr_words(p)
+    if not words:
+        return ""
+    return " ".join(w.text for w in words)
 
 
 def _parse_num(s):

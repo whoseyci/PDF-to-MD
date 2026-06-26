@@ -652,7 +652,69 @@ def main():
     print("=== parallel extractor ==="); test_parallel_extractor(t)
     print("=== structural credibility ==="); test_structural_credibility(t)
     print("=== smart extractor caption-decisive ==="); test_smart_caption_decisive(t)
+    print("=== ocr cache ==="); test_ocr_cache(t)
     return t.report()
+
+
+def test_ocr_cache(t):
+    """ocr_words memoises by (path, mtime, size); cached_image_to_string
+    returns a string and shares the cache with specialists."""
+    import tempfile
+    from PIL import Image as _PILImage
+    from pipeline_v2.vision.chart_extract.axis_ocr import (
+        ocr_words, cached_image_to_string,
+        clear_ocr_cache, get_ocr_cache_stats,
+    )
+    with tempfile.TemporaryDirectory() as td:
+        img_path = Path(td) / "ocr_cache_test.png"
+        # Minimal image with a digit Tesseract should reliably find.
+        # If Tesseract isn't installed in CI we still want the cache
+        # plumbing to behave; the empty-list path is exercised.
+        im = _PILImage.new("RGB", (200, 80), "white")
+        try:
+            from PIL import ImageDraw, ImageFont
+            d = ImageDraw.Draw(im)
+            d.text((10, 10), "10 20 30", fill="black")
+        except Exception:
+            pass
+        im.save(img_path)
+
+        clear_ocr_cache()
+        stats0 = get_ocr_cache_stats()
+        t.check(stats0["entries"] == 0, "cache starts empty")
+
+        w1 = ocr_words(img_path)
+        stats1 = get_ocr_cache_stats()
+        t.check(stats1["entries"] == 1, f"one entry after first call: {stats1}")
+        # Misses incremented; hits did not (first call is always a miss).
+        t.check(stats1["misses"] >= 1, "first call counted as miss")
+
+        miss_count = stats1["misses"]
+        hit_count = stats1["hits"]
+        w2 = ocr_words(img_path)
+        stats2 = get_ocr_cache_stats()
+        t.check(w2 is w1, "second call returns same list object (cache hit)")
+        t.check(stats2["hits"] == hit_count + 1,
+                f"hit counter advanced: {stats2}")
+        t.check(stats2["misses"] == miss_count, "miss counter unchanged")
+
+        # cached_image_to_string uses the SAME cache.
+        before = stats2["misses"]
+        s = cached_image_to_string(img_path)
+        stats3 = get_ocr_cache_stats()
+        t.check(isinstance(s, str), f"returns str: {type(s)}")
+        t.check(stats3["misses"] == before,
+                "cached_image_to_string did not OCR again")
+        # Rewriting the file invalidates the cache (mtime/size differ).
+        import time as _time
+        _time.sleep(0.02)
+        im2 = _PILImage.new("RGB", (200, 80), "white")
+        im2.save(img_path)
+        before_miss = stats3["misses"]
+        _ = ocr_words(img_path)
+        stats4 = get_ocr_cache_stats()
+        t.check(stats4["misses"] == before_miss + 1,
+                f"rewrite invalidated cache: misses {before_miss}->{stats4['misses']}")
 
 
 def test_parallel_extractor(t):

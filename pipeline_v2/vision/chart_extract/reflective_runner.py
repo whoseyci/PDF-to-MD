@@ -229,11 +229,12 @@ def run_reflective_extraction(*,
     trace = ReflectiveTrace(image_path=str(image_path))
 
     # 0. Auto-OCR if no text was supplied -- extractors need it.
+    # Uses the shared ocr_words cache so when specialists run next they
+    # don't OCR the same image again (saves ~0.4 s/figure).
     if auto_ocr and (ocr_text is None or not ocr_text.strip()):
         try:
-            import pytesseract
-            from PIL import Image
-            ocr_text = pytesseract.image_to_string(Image.open(image_path))
+            from .axis_ocr import cached_image_to_string
+            ocr_text = cached_image_to_string(image_path)
         except Exception:
             ocr_text = ocr_text or ""
 

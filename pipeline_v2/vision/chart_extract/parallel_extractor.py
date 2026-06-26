@@ -264,13 +264,20 @@ def run_parallel_extraction(*,
         except Exception:
             pass
 
-    # 0. Auto-OCR
+    # 0. Auto-OCR. Synthesize from cached ocr_words() instead of running
+    # a second image_to_string pass -- ocr_words() already has results
+    # cached after the first specialist runs, but specialists need Word
+    # objects not a string, so we run ocr_words() here (warm-fills the
+    # cache for everyone downstream) and join the texts. Saves one full
+    # tesseract invocation per figure (~0.4 s on the value-fidelity bench)
+    # without sacrificing anything specialists actually use.
     if auto_ocr and (ocr_text is None or not ocr_text.strip()):
         try:
-            import pytesseract
-            from PIL import Image
-            ocr_text = pytesseract.image_to_string(Image.open(actual_path))
-            trace.decision_log.append(f"auto-ocr: {len(ocr_text)} chars")
+            from .axis_ocr import ocr_words as _ocr_words
+            _words = _ocr_words(actual_path)
+            ocr_text = " ".join(w.text for w in _words) if _words else ""
+            trace.decision_log.append(
+                f"auto-ocr: {len(_words)} words / {len(ocr_text)} chars")
         except Exception as e:
             ocr_text = ocr_text or ""
             trace.decision_log.append(f"auto-ocr failed: {e}")

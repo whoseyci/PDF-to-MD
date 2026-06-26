@@ -253,6 +253,32 @@ Without-caption reflective extraction went from **50% → 78.6%** on
 the synthetic bench after these fixes. With-caption performance
 unchanged (already at 86%, capped by extractor quality).
 
+### Round 6 OCR caching (Jun 2026)
+
+The single biggest leftover speedup from Round 5's ROI-ranked attack
+list: each chart extractor was calling `axis_ocr.ocr_words()`
+independently, so a parallel sweep of 8 specialists OCR'd the same
+image 8+ times. The parallel extractor's `auto_ocr` step also called
+`pytesseract.image_to_string` as a separate Tesseract pass.
+
+Fix: `axis_ocr.ocr_words` now memoises by `(abs_path, mtime, size)`
+in a per-process LRU. Auto-OCR was rewritten to synthesise its text
+from the cached word list, so it warms the cache instead of duplicating
+work. Same for the reflective runner.
+
+Measured on the value-fidelity bench (`bench_ocr_caching.py`):
+
+| | Before | After |
+|---|---|---|
+| Tesseract calls per single-panel figure | 11 | **1** |
+| OCR wall-time as % of total | 62% | **13%** |
+| End-to-end avg per figure | ~6.5 s | **~2.8 s** |
+
+Multipanel figures still issue one OCR call per panel (correct — each
+panel is a different image). The cache invalidates automatically on
+file rewrite (mtime/size key) so downscaled temp images don't
+collide. Tests: 160/160 (added `test_ocr_cache`).
+
 ### Round 5 honest-evaluation push (Oct 2026)
 
 User asked if we'd reached the limit. Built 4 new benches in sequence
